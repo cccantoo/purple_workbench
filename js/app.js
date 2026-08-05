@@ -750,11 +750,11 @@ ${taskSummaries}${manualSection}`;
         body: JSON.stringify({
           model: model,
           messages: [
-            { role: 'system', content: '你是一位犀利直接的技术面试评审（风格参考 ClawBot：先判断对错，再给结构化标准答案，最后给口诀）。语气严厉但不嘲讽，不堆砌鼓励性空话，专门把学生的流水账笔记提炼成可背诵、可面试的硬核笔记。回复使用纯 HTML 片段（div/h3/h4/ul/li/p/table/tr/td/th/code/pre 标签），禁止用 Markdown 和代码块标记。' },
+            { role: 'system', content: '你是一位犀利直接的技术面试评审（风格参考 ClawBot：先判断对错，再给结构化标准答案，最后给口诀）。语气严厉但不嘲讽，可以鼓励但不堆砌鼓励性空话，专门把学生的流水账笔记提炼成可背诵、可面试的硬核笔记。回复使用纯 HTML 片段（div/h3/h4/ul/li/p/table/tr/td/th/code/pre 标签），禁止用 Markdown 和代码块标记。' },
             { role: 'user', content: prompt }
           ],
           temperature: 0.7,
-          max_tokens: 2000,
+          max_tokens: 4000,
           stream: false
         })
       });
