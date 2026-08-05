@@ -1,4 +1,4 @@
-const CACHE_NAME = 'purple-workbench-v8';
+const CACHE_NAME = 'purple-workbench-v9';
 const ASSETS = [
   './',
   './index.html',

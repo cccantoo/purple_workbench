@@ -1,0 +1,20 @@
+name: Deploy to Server
+
+# 推送 main 分支时自动触发部署
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 通过 SSH 在服务器上执行部署脚本
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}       # 服务器公网 IP
+          username: ${{ secrets.DEPLOY_USER }}   # 如 root
+          key: ${{ secrets.DEPLOY_SSH_KEY }}     # 服务器专用私钥
+          port: 22                               # SSH 端口,改了的话同步修改
+          script: |
+            /var/www/deploy-purple-workbench.sh
