@@ -12,7 +12,7 @@
   const TAG_PRESETS_KEY = 'purple_workbench_tags';
   const AI_SUMMARY_KEY = 'purple_workbench_ai_summaries';
 
-  const DEFAULT_TAGS = ['TS', 'JS', '前端', '后端', '算法', '项目', '面试', '学习', '刷题', 'React', 'Vue', 'Node', 'Python', 'LeetCode', '设计模式', '数据库'];
+  const DEFAULT_TAGS = ['TS', 'JS', '前端', '后端', '算法', '项目', '面试', '学习', '刷题', 'React', 'Vue', 'Node', 'Python', 'LeetCode', '设计模式', '数据库','learn-cc'];
 
   let appData = {
     tasks: [],
