@@ -1,4 +1,6 @@
-const CACHE_NAME = 'purple-workbench-v9';
+// 部署时由 deploy-purple-workbench.sh 自动把 __VERSION__ 替换成 git 提交号,
+// 每次部署 sw.js 内容都不同,浏览器检测到变化会自动换新缓存,无需手动改版本号
+const CACHE_NAME = 'purple-workbench-__VERSION__';
 const ASSETS = [
   './',
   './index.html',
