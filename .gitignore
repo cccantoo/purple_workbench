@@ -1,0 +1,11 @@
+# 敏感文件:本地 HTTPS 开发证书(私钥,切勿提交)
+cert.pem
+key.pem
+
+# 依赖与构建
+node_modules/
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db

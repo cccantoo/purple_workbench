@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#D4B8E8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="PurpleWB">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
+  <link rel="apple-touch-icon" href="./icons/icon.svg">
+  <title>紫色学习工作台 · PurpleWorkbench</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<!-- ========== 主应用容器 ========== -->
+<div id="app" class="app-container">
+
+  <!-- 顶部 Header -->
+  <header class="app-header">
+    <div class="header-top">
+      <div class="header-brand">
+        <span class="brand-icon"><img src="./icons/icon.jpg" alt="logo"></span>
+        <h1 class="brand-name">学习工作台</h1>
+      </div>
+      <div class="header-date" id="headerDate"></div>
+    </div>
+
+    <!-- 统计面板 -->
+    <div class="stats-panel" id="statsPanel">
+      <div class="stat-card">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">全部任务</div>
+      </div>
+      <div class="stat-card stat-done">
+        <div class="stat-value" id="statDone">0</div>
+        <div class="stat-label">已完成</div>
+      </div>
+      <div class="stat-card stat-pending">
+        <div class="stat-value" id="statPending">0</div>
+        <div class="stat-label">待完成</div>
+      </div>
+      <div class="stat-card stat-rate">
+        <div class="stat-value" id="statRate">0%</div>
+        <div class="stat-label">完成率</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 搜索栏 -->
+  <div class="search-bar">
+    <div class="search-input-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="搜索任务、小结、链接...">
+      <button class="search-clear hidden" id="searchClear">✕</button>
+    </div>
+    <button class="btn-ai-summary" id="btnAISummary" title="AI一键总结今日学习">
+      <span>✨</span> AI总结
+    </button>
+  </div>
+
+  <!-- 筛选栏 -->
+  <div class="filter-bar" id="filterBar">
+    <div class="filter-scroll">
+      <button class="filter-chip active" data-filter="all">全部</button>
+      <button class="filter-chip" data-filter="pending">待完成</button>
+      <button class="filter-chip" data-filter="in-progress">进行中</button>
+      <button class="filter-chip" data-filter="completed">已完成</button>
+      <button class="filter-chip" data-filter="on-hold">搁置</button>
+      <button class="filter-chip" data-filter="high">🔴 高优先</button>
+      <button class="filter-chip" data-filter="medium">🟡 中优先</button>
+      <button class="filter-chip" data-filter="low">🟢 低优先</button>
+      <button class="filter-chip" data-filter="pinned">📌 置顶</button>
+    </div>
+    <button class="filter-tag-btn" id="btnTagFilter" title="按标签筛选">🏷️</button>
+  </div>
+
+  <!-- 标签筛选下拉 -->
+  <div class="tag-filter-panel hidden" id="tagFilterPanel">
+    <div class="tag-filter-list" id="tagFilterList"></div>
+  </div>
+
+  <!-- 任务列表 -->
+  <main class="task-list" id="taskList">
+    <!-- 空状态 -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon"><img src="./icons/welcome.jpg" alt="welcome"></div>
+      <div class="empty-title">还没有任务</div>
+      <div class="empty-desc">点击下方 + 按钮，开始记录你的学习与开发任务吧 🌸</div>
+    </div>
+  </main>
+
+  <!-- 浮动操作按钮 -->
+  <button class="fab" id="fabAdd" title="新建任务">+</button>
+
+  <!-- 底部导航 -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-tab="tasks">
+      <span class="nav-icon">📋</span>
+      <span class="nav-text">任务</span>
+    </button>
+    <button class="nav-item" data-tab="archive">
+      <span class="nav-icon">📁</span>
+      <span class="nav-text">归档</span>
+    </button>
+    <button class="nav-item" data-tab="settings">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-text">设置</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ========== 模态框层 ========== -->
+
+<!-- 任务编辑模态框 -->
+<div class="modal-overlay hidden" id="modalTask">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <button class="modal-back" id="modalTaskBack">← 返回</button>
+      <h2 class="modal-title" id="modalTaskTitle">新建任务</h2>
+      <button class="modal-action" id="modalTaskSave">保存</button>
+    </div>
+    <div class="modal-body">
+      <!-- 标题 -->
+      <div class="form-group">
+        <label class="form-label">任务标题 <span class="required">*</span></label>
+        <input type="text" class="form-input" id="taskTitle" placeholder="输入任务标题...">
+      </div>
+      <!-- 简短总览 -->
+      <div class="form-group">
+        <label class="form-label">简短总览</label>
+        <input type="text" class="form-input" id="taskOverview" placeholder="一句话概括这个任务...">
+      </div>
+      <!-- 详细描述 -->
+      <div class="form-group">
+        <label class="form-label">详细描述</label>
+        <textarea class="form-textarea" id="taskDesc" rows="3" placeholder="详细描述任务内容、目标、要求..."></textarea>
+      </div>
+      <!-- 关联链接 -->
+      <div class="form-group">
+        <label class="form-label">关联链接</label>
+        <div class="links-container" id="taskLinks"></div>
+        <button class="btn-add-link" id="btnAddLink">+ 添加链接</button>
+      </div>
+      <!-- 标签 -->
+      <div class="form-group">
+        <label class="form-label">任务标签</label>
+        <div class="tags-input-wrap">
+          <div class="tags-display" id="taskTags"></div>
+          <div class="tags-add-row">
+            <input type="text" class="form-input tag-input" id="tagInput" placeholder="输入标签名，回车添加...">
+            <div class="tag-suggestions" id="tagSuggestions"></div>
+          </div>
+        </div>
+      </div>
+      <!-- 优先级 -->
+      <div class="form-group">
+        <label class="form-label">优先级</label>
+        <div class="priority-selector" id="prioritySelector">
+          <button class="priority-btn" data-priority="low">🟢 低</button>
+          <button class="priority-btn active" data-priority="medium">🟡 中</button>
+          <button class="priority-btn" data-priority="high">🔴 高</button>
+        </div>
+      </div>
+      <!-- 状态 -->
+      <div class="form-group">
+        <label class="form-label">任务状态</label>
+        <div class="status-selector" id="statusSelector">
+          <button class="status-btn active" data-status="pending">📌 待完成</button>
+          <button class="status-btn" data-status="in-progress">🔄 进行中</button>
+          <button class="status-btn" data-status="completed">✅ 已完成</button>
+          <button class="status-btn" data-status="on-hold">⏸️ 搁置</button>
+        </div>
+      </div>
+      <!-- 日期 -->
+      <div class="form-row">
+        <div class="form-group form-half">
+          <label class="form-label">计划完成日期</label>
+          <input type="date" class="form-input" id="taskPlannedDate">
+        </div>
+        <div class="form-group form-half">
+          <label class="form-label">实际完成日期</label>
+          <input type="date" class="form-input" id="taskActualDate">
+        </div>
+      </div>
+      <!-- 耗时 -->
+      <div class="form-group">
+        <label class="form-label">学习/开发耗时（分钟）</label>
+        <input type="number" class="form-input" id="taskTimeSpent" placeholder="0" min="0">
+      </div>
+      <!-- 置顶 -->
+      <div class="form-group">
+        <label class="form-check-label">
+          <input type="checkbox" id="taskPinned"> 📌 置顶此任务
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 任务详情模态框 -->
+<div class="modal-overlay hidden" id="modalDetail">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <button class="modal-back" id="modalDetailBack">← 返回</button>
+      <h2 class="modal-title">任务详情</h2>
+      <button class="modal-action" id="modalDetailEdit">编辑</button>
+    </div>
+    <div class="modal-body" id="modalDetailBody"></div>
+  </div>
+</div>
+
+<!-- 学习小结模态框 -->
+<div class="modal-overlay hidden" id="modalSummary">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <button class="modal-back" id="modalSummaryBack">← 返回</button>
+      <h2 class="modal-title">学习小结</h2>
+      <button class="modal-action" id="modalSummarySave">保存</button>
+    </div>
+    <div class="modal-body">
+      <div class="summary-task-info" id="summaryTaskInfo"></div>
+      <div class="form-group">
+        <label class="form-label">小结内容</label>
+        <textarea class="form-textarea" id="summaryContent" rows="6" placeholder="记录知识点、踩坑经验、实操步骤..."></textarea>
+      </div>
+      <div class="summary-list" id="summaryList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI 总结结果模态框 -->
+<div class="modal-overlay hidden" id="modalAI">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <button class="modal-back" id="modalAIBack">← 返回</button>
+      <h2 class="modal-title">✨ AI 学习总结</h2>
+      <span></span>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">💬 今天做了什么？（手动补充，可选）</label>
+        <textarea class="form-textarea" id="aiManualInput" rows="4" placeholder="自由记录今天的学习内容、遇到的问题、新学到的知识点...&#10;这些内容会和你的任务数据一起发送给 AI 做总结分析。"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">📋 选择要总结的任务（默认勾选今天的）</label>
+        <div class="ai-task-picker" id="aiTaskPicker">
+          <p class="ai-task-picker-empty">暂无任务可供选择</p>
+        </div>
+      </div>
+      <button class="btn-ai-generate" id="btnAIGenerate">✨ 生成 AI 总结</button>
+      <div class="ai-loading hidden" id="aiLoading">
+        <div class="ai-loading-spinner"><img src="./icons/ai.jpg" alt="thinking"></div>
+        <p>AI 正在分析你的今日学习成果...</p>
+      </div>
+      <div class="ai-result hidden" id="aiResult"></div>
+      <div class="ai-empty hidden" id="aiEmpty">
+        <div class="empty-icon"><img src="./icons/welcome.jpg" alt="empty"></div>
+        <p>今天还没有任务记录哦~</p>
+        <p class="empty-desc">去创建一些任务，或在上方直接写下今天的学习内容吧 🌸</p>
+      </div>
+      <div id="aiHistory"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 归档页面 -->
+<div class="modal-overlay hidden" id="modalArchive">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <button class="modal-back" id="modalArchiveBack">← 返回</button>
+      <h2 class="modal-title">📁 归档</h2>
+      <span></span>
+    </div>
+    <div class="modal-body">
+      <div class="archive-tabs">
+        <button class="archive-tab active" data-tab="archive-tasks">📋 任务归档</button>
+        <button class="archive-tab" data-tab="archive-ai">✨ AI总结归档</button>
+      </div>
+      <div class="archive-search">
+        <input type="text" class="form-input" id="archiveSearch" placeholder="搜索归档内容...">
+      </div>
+      <div class="archive-list" id="archiveList">
+        <div class="empty-state">
+          <div class="empty-icon"><img src="./icons/welcome.jpg" alt="empty"></div>
+          <p>暂无归档</p>
+        </div>
+      </div>
+      <div class="archive-list hidden" id="archiveAIList">
+        <div class="empty-state">
+          <div class="empty-icon"><img src="./icons/welcome.jpg" alt="empty"></div>
+          <p>暂无 AI 总结归档</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 设置页面 -->
+<div class="modal-overlay hidden" id="modalSettings">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <button class="modal-back" id="modalSettingsBack">← 返回</button>
+      <h2 class="modal-title">⚙️ 设置</h2>
+      <span></span>
+    </div>
+    <div class="modal-body">
+      <div class="settings-section">
+        <h3 class="settings-section-title">AI 总结配置</h3>
+        <div class="form-group">
+          <label class="form-label">DeepSeek API Key</label>
+          <input type="password" class="form-input" id="settingApiKey" placeholder="sk-...">
+          <small class="form-hint">留空则使用本地智能总结模式</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">AI 模型</label>
+          <select class="form-input" id="settingModel">
+            <option value="deepseek-v4-flash">DeepSeek V4-Flash（性价比，推荐）</option>
+            <option value="deepseek-v4-pro">DeepSeek V4-Pro（深度推理）</option>
+            <option value="deepseek-chat">DeepSeek V3（旧版，兼容期）</option>
+            <option value="deepseek-reasoner">DeepSeek R1（旧版，兼容期）</option>
+          </select>
+          <small class="form-hint">V4 系列支持 1M 上下文，Flash 性价比高，Pro 推理更强</small>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3 class="settings-section-title">数据管理</h3>
+        <button class="btn-settings" id="btnExportData">📤 导出数据备份</button>
+        <button class="btn-settings" id="btnImportData">📥 导入数据恢复</button>
+        <input type="file" id="importFile" accept=".json" class="hidden">
+        <button class="btn-settings btn-danger" id="btnClearData">🗑️ 清除所有数据</button>
+      </div>
+      <div class="settings-section">
+        <h3 class="settings-section-title">关于</h3>
+        <p class="about-text">🌸 紫色学习工作台 v1.0<br>PurpleWorkbench — 温柔陪伴你的学习与成长</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 确认对话框 -->
+<div class="modal-overlay hidden" id="modalConfirm">
+  <div class="modal-dialog">
+    <div class="dialog-icon" id="confirmIcon">⚠️</div>
+    <p class="dialog-message" id="confirmMessage"></p>
+    <div class="dialog-actions">
+      <button class="btn-dialog btn-dialog-cancel" id="confirmCancel">取消</button>
+      <button class="btn-dialog btn-dialog-confirm" id="confirmOk">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast 提示 -->
+<div class="toast hidden" id="toast"></div>
+
+<script src="./js/app.js"></script>
+</body>
+</html>

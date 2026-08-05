@@ -1,0 +1,27 @@
+{
+  "name": "紫色学习工作台 - PurpleWorkbench",
+  "short_name": "PurpleWB",
+  "description": "紫色淑女风 · 个人开发学习工作台 — 全功能任务管理 + AI智能学习总结",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#D4B8E8",
+  "background_color": "#F8F4FC",
+  "icons": [
+    {
+      "src": "./icons/icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "scope": "./",
+  "lang": "zh-CN",
+  "categories": ["productivity", "education"]
+}
