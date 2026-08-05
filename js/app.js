@@ -556,96 +556,75 @@
     const taskCountDesc = data.taskCount > 0
       ? `${data.taskCount} 个任务（已完成 ${data.completedCount}，进行中 ${data.inProgressCount}）`
       : '暂无任务，以下基于你的手动输入生成';
-
     const hasContent = data.deepKnowledge.length > 0 || data.interviewQuestions.length > 0;
 
-    let md = '';
+    let h = '';
 
-    // 锐评概览
-    md += `# ⚡ 今日技术复盘\n\n`;
-    md += `> 今天参与 ${timeStr} 的${timeStr !== '未记录' ? '学' : ''}学习，覆盖 ${taskCountDesc}。`;
-    if (!hasContent) {
-      md += ` 但你的笔记太简略，AI 无法提炼深度内容。下次记得写清楚踩坑、命令、关键代码片段。`;
-    }
-    md += `\n\n---\n\n`;
+    // ⚡ 今日技术复盘
+    h += `<div class="ai-result-section"><h4>⚡ 今日技术复盘</h4>`;
+    h += `<blockquote>今天参与${timeStr !== '未记录' ? '了 ' + timeStr + ' 的' : ''}学习，涉及 ${taskCountDesc}。`;
+    h += !hasContent ? ` 但笔记太简略，AI 无法提炼深度内容。</blockquote></div>` : `</blockquote></div>`;
 
-    // ❌ 容易踩坑/容易答错
-    md += `## ❌ 容易踩坑/容易答错的地方\n\n`;
+    // ❌ 容易踩坑
+    h += `<div class="ai-result-section"><h4>❌ 容易踩坑 / 容易答错的地方</h4><ul>`;
     if (data.deepKnowledge.length > 0) {
-      data.deepKnowledge.slice(0, 4).forEach((k, i) => {
-        md += `- **坑点 ${i + 1}：${escapeHtml(k.title)}**：${escapeHtml(k.detail)}\n`;
+      data.deepKnowledge.slice(0, 4).forEach(k => {
+        h += `<li><strong>${escapeHtml(k.title)}</strong>：${escapeHtml(k.detail)}</li>`;
       });
     } else {
-      md += `- 今天的记录没有暴露明显的踩坑点。但**根据你的学习方向**，以下是常见面试坑：\n`;
-      md += `- ⚠️ 概念混淆（HashMap vs Hashtable、== vs equals 等）\n`;
-      md += `- ⚠️ 只背概念不写代码（面试会现场写算法）\n`;
-      md += `- ⚠️ 不说"踩过的坑"（面试官最爱问"遇到过什么问题"）\n`;
+      h += `<li>今天的记录没有暴露明显踩坑点。常见面试坑：概念混淆、只背不写、不记踩坑经历。</li>`;
     }
-    md += `\n---\n\n`;
+    h += `</ul></div>`;
 
-    // ✅ 今日真正掌握的
-    md += `## ✅ 今日真正掌握的知识点\n\n`;
+    // ✅ 今日掌握的知识点
+    h += `<div class="ai-result-section"><h4>✅ 今日真正掌握的知识点</h4><ol>`;
     if (data.deepKnowledge.length > 0) {
-      data.deepKnowledge.slice(0, 5).forEach((k, i) => {
-        md += `**${i + 1}. ${escapeHtml(k.title)}**\n`;
-        md += `- ${escapeHtml(k.detail)}\n\n`;
+      data.deepKnowledge.slice(0, 5).forEach(k => {
+        h += `<li><strong>${escapeHtml(k.title)}</strong>：${escapeHtml(k.detail)}</li>`;
       });
     } else {
-      md += `⚠️ **今天的笔记太简略了**——没有具体的技术细节、踩坑经历或代码片段，AI 无法提炼深度内容。\n\n`;
-      md += `**口诀**：\`记录越细，总结越准；细节越多，口诀越精。\`\n`;
+      h += `<li><strong>记录太简略</strong>——没具体的技术细节、踩坑经历或代码片段，AI 无法提炼。</li>`;
     }
-    md += `---\n\n`;
+    h += `</ol></div>`;
 
     // 🎤 面试官视角
-    md += `## 🎤 面试官视角：标准答案模板\n\n`;
+    h += `<div class="ai-result-section"><h4>🎤 面试官视角：标准答案模板</h4>`;
     if (data.interviewQuestions.length > 0) {
       data.interviewQuestions.forEach((q, i) => {
-        md += `### Q${i + 1}: ${escapeHtml(q.split('？')[0] + '？')}\n`;
-        md += `**口诀**：\`见下方标准答案的最后一行\`\n\n`;
-        md += `**标准答案**：\n`;
-        md += `| 维度 | 内容 |\n|------|------|\n`;
-        md += `| 定义 | ${escapeHtml(q.split('？')[0])} |\n`;
-        md += `| 原理 | 核心机制 + 数据结构/算法 |\n`;
-        md += `| 应用 | 实际场景 + 最佳实践 |\n`;
-        md += `| 坑点 | 面试官最爱追问的细节 |\n\n`;
-        md += `> ${escapeHtml(q)}\n\n`;
-        md += `**口诀**：\`核心原理一句话，背熟能挡 80% 追问。\`\n\n`;
+        h += `<h5>Q${i + 1}: ${escapeHtml(q.split('？')[0] + '？')}</h5>`;
+        h += `<p><strong>口诀</strong>：<code>核心原理一句话，背熟能挡 80% 追问</code></p>`;
+        h += `<table><tr><th>维度</th><th>内容</th></tr>`;
+        h += `<tr><td>定义</td><td>${escapeHtml(q.split('？')[0])}</td></tr>`;
+        h += `<tr><td>原理</td><td>核心机制 + 数据结构</td></tr>`;
+        h += `<tr><td>应用</td><td>实际场景</td></tr>`;
+        h += `<tr><td>坑点</td><td>面试官最爱追问</td></tr></table>`;
+        h += `<blockquote>${escapeHtml(q)}</blockquote>`;
       });
     } else {
-      md += `### Q1: 试着用费曼学习法复述今天学的内容\n`;
-      md += `**口诀**：\`会讲才真懂，讲不清就是没懂。\`\n\n`;
-      md += `**标准答案**：\n`;
-      md += `| 步骤 | 操作 |\n|------|------|\n`;
-      md += `| 1 | 假装对方不懂技术 |\n`;
-      md += `| 2 | 用生活化比喻讲核心概念 |\n`;
-      md += `| 3 | 卡住的地方 = 真不懂的地方 |\n`;
-      md += `| 4 | 回去补，补完再讲 |\n`;
+      h += `<h5>Q1: 试试用费曼学习法复述今天学的内容</h5>`;
+      h += `<p><strong>口诀</strong>：<code>会讲才真懂，讲不清就是没懂</code></p>`;
     }
-    md += `---\n\n`;
+    h += `</div>`;
 
     // 🛠️ 实操备忘录
-    md += `## 🛠️ 实操备忘录\n\n`;
+    h += `<div class="ai-result-section"><h4>🛠️ 实操备忘录</h4><ul>`;
     if (data.practicalTips.length > 0) {
-      data.practicalTips.forEach(t => {
-        md += `- ${escapeHtml(t)}\n`;
-      });
+      data.practicalTips.forEach(t => { h += `<li>${escapeHtml(t)}</li>`; });
     } else {
-      md += `- 今天没有记录具体实操细节。\n`;
-      md += `- **下次遇到报错，记下**：(1) 报错信息 (2) 复现步骤 (3) 你的猜测 (4) 实际原因\n`;
-      md += `- 这些是面试"你遇到过什么技术难题"的最佳素材。\n`;
+      h += `<li>今天没有记录具体实操细节。下次遇到报错，记下：(1) 报错信息 (2) 复现步骤 (3) 你的猜测 (4) 实际原因。</li>`;
     }
-    md += `\n---\n\n`;
+    h += `</ul></div>`;
 
     // 📅 明日学习路线
-    md += `## 📅 明日学习路线\n\n`;
-    md += `- **必做**：把今日的口诀抄一遍，背下来。\n`;
-    md += `- **可选**：挑一个"❌ 容易踩坑"里的点，写一段代码验证。\n`;
+    h += `<div class="ai-result-section"><h4>📅 明日学习路线</h4><ul>`;
+    h += `<li>把今日的口诀抄一遍，背下来</li>`;
     if (data.deepSuggestions.length > 0) {
-      md += `- **进阶**：${escapeHtml(data.deepSuggestions[0].title)} — ${escapeHtml(data.deepSuggestions[0].detail).substring(0, 60)}\n`;
+      h += `<li>进阶：${escapeHtml(data.deepSuggestions[0].title)}</li>`;
     }
-    md += `- **口诀**：\`输入 → 输出 → 背口诀，三步闭环。\`\n`;
+    h += `<li><strong>口诀</strong>：<code>输入 → 输出 → 背口诀，三步闭环</code></li>`;
+    h += `</ul></div>`;
 
-    return md;
+    return h;
   }
 
   function getStudyTip() {
@@ -708,91 +687,51 @@
     const prompt = `你是一位犀利直接的技术面试评审（风格参考 ClawBot），学生在面试准备中。你的任务：从学生今天的学习记录（流水账、踩坑记录、零散代码片段、面试题思考）中，像评审一样提炼出可背诵、可面试的硬核笔记。
 
 【评审风格 — 必须遵守】
-- 语气直接犀利，不堆砌"加油""真棒"等空话
+- 语气直接犀利，不堆砌"加油""真棒"等空话，但允许部分的鼓励
 - **先指出容易踩坑/容易答错的地方**（如果学生笔记里没明显错误，就给出该领域高频踩坑点）
 - 再给"✅ 真正掌握"的核心知识点
 - 每个关键概念都要给出**一句口诀**（高度凝练，方便背诵）
 - 用具体的数字、例子、代码说话，禁止"建议多练习"这种空话
 
-【输出结构 — 使用 Markdown】
+【输出结构 — 使用 HTML】
 
-# ⚡ 今日技术复盘
+<div class="ai-result-section"><h4>⚡ 今日技术复盘</h4>
+<blockquote>1-2 句锐评：今天到底搞懂了什么，没搞懂什么</blockquote></div>
 
-> 1-2 句锐评：今天到底搞懂了什么，没搞懂什么
+<div class="ai-result-section"><h4>❌ 容易踩坑 / 容易答错的地方</h4>
+<ul>
+<li><strong>坑点标题</strong>：具体说明坑在哪、正确做法是什么</li>
+<li>（2-4 条）</li>
+</ul></div>
 
----
+<div class="ai-result-section"><h4>✅ 今日真正掌握的知识点</h4>
+<ol>
+<li><strong>知识点名</strong>：是什么 / 为什么重要 / 怎么用。配代码示例或具体数据。</li>
+<li>...</li>
+</ol></div>
 
-## ❌ 容易踩坑/容易答错的地方
+<div class="ai-result-section"><h4>🎤 面试官视角：标准答案模板</h4>
+<h5>Q1: 高频面试题</h5>
+<p><strong>口诀</strong>：<code>一句高度凝练的话</code></p>
+<table><tr><th>维度</th><th>内容</th></tr><tr><td>定义</td><td>...</td></tr><tr><td>原理</td><td>...</td></tr><tr><td>应用</td><td>...</td></tr><tr><td>坑点</td><td>...</td></tr></table>
+（2-3 道题，每道都要配口诀）</div>
 
-- **坑点标题**：具体说明坑在哪、正确做法是什么
-- （2-4 条）
+<div class="ai-result-section"><h4>🛠️ 实操备忘录</h4>
+<ul>
+<li>命令 / 配置 / 代码片段（可直接复制）</li>
+<li>报错信息 + 解决方案</li>
+</ul></div>
 
----
+<div class="ai-result-section"><h4>📅 明日学习路线</h4>
+<p>具体的下一步行动</p></div>
 
-## ✅ 今日真正掌握的知识点
-
-**1. 知识点名**
-- 是什么 / 为什么重要 / 怎么用
-- 代码示例或具体数据
-
-**2. 知识点名**
-- ...
-
-（3-5 条，必须从学生笔记里提炼，没内容就直说"今天记录太简略"）
-
----
-
-## 🎤 面试官视角：标准答案模板
-
-### Q1: 高频面试题
-**口诀**：\\\`一句高度凝练的话\\\`
-
-**标准答案**：
-| 维度 | 内容 |
-|------|------|
-| 定义 | ... |
-| 原理 | ... |
-| 应用 | ... |
-| 坑点 | ... |
-
-### Q2: ...
-（2-3 道题，每道都要配口诀）
-
----
-
-## 🛠️ 实操备忘录
-
-- 命令 / 配置 / 代码片段（可直接复制）
-- 报错信息 + 解决方案
-
----
-
-## 📅 明日学习路线
-
-- 具体的下一步行动（不是"继续加油"）
-
----
-
-【字数与质量约束】
-- 总字数 600-900 字，充实精炼
-- 关键概念必须配口诀
-- 表格至少 1 个
-- 至少 2 段代码或配置示例
-
-【Markdown 格式规范 — 必须严格遵守】
-1. 标题：用 ## 二级标题（章节）、### 三级标题（小节）。**不要省略 #**
-2. 表格：必须用标准 Markdown 语法 — 表头、分隔行（| --- | --- |）、数据行，每行用 | 包围。例如：
-
-   | 维度 | 内容 |
-   | --- | --- |
-   | 定义 | ... |
-
-3. 代码：必须用三反引号包裹，并标注语言（如 \`\`\`bash、\`\`\`js）
-4. 列表：- 开头，不要用 •
-5. 强调：**加粗** 用于关键术语，反引号包裹的命令 用于命令/参数
-6. 分割：用 --- 分隔主要章节
-7. 引用：核心口诀用 > xxx 块引用
-8. **不要**用 HTML 标签；**不要**省略表格分隔行；**不要**用空格代替 |
+【HTML 格式规范 — 必须严格遵守】
+1. 所有内容必须用上面指定的 <div class="ai-result-section"> 包裹
+2. 章节标题用 <h4>，子标题用 <h5>
+3. 表格用 <table>，代码用 <pre><code>
+4. 加粗用 <strong>，行内代码用 <code>
+5. **不要**输出 Markdown；**不要**用 ### 或 ---
+6. **不要**用外层代码块标记
 
 任务列表（含状态）：
 ${taskSummaries}${manualSection}`;
@@ -811,7 +750,7 @@ ${taskSummaries}${manualSection}`;
         body: JSON.stringify({
           model: model,
           messages: [
-            { role: 'system', content: '你是一位犀利直接的技术面试评审（参考 ClawBot 风格：先判断对错，再给结构化标准答案，最后给口诀）。语气严厉但不嘲讽，不堆砌鼓励性空话，专门把学生的流水账笔记提炼成可背诵、可面试的硬核笔记。回复使用 Markdown 格式（##/###/---/表格/**加粗**/`代码`/emoji），不要用 HTML 包裹，不要外层代码块标记。' },
+            { role: 'system', content: '你是一位犀利直接的技术面试评审（风格参考 ClawBot：先判断对错，再给结构化标准答案，最后给口诀）。语气严厉但不嘲讽，不堆砌鼓励性空话，专门把学生的流水账笔记提炼成可背诵、可面试的硬核笔记。回复使用纯 HTML 片段（div/h3/h4/ul/li/p/table/tr/td/th/code/pre 标签），禁止用 Markdown 和代码块标记。' },
             { role: 'user', content: prompt }
           ],
           temperature: 0.7,
@@ -1701,7 +1640,7 @@ ${taskSummaries}${manualSection}`;
       `;
       document.getElementById('aiResult').classList.remove('hidden');
     } else {
-      const renderedHtml = renderMarkdown(result.html);
+      const renderedHtml = result.html;
       document.getElementById('aiResult').innerHTML = renderedHtml;
       document.getElementById('aiResult').classList.remove('hidden');
 
