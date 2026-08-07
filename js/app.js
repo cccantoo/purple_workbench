@@ -2011,6 +2011,8 @@ ${taskSummaries}${manualSection}`;
       document.getElementById('skillName').value = s.name;
       document.getElementById('skillDesc').value = s.desc || '';
       document.getElementById('skillPrompt').value = s.prompt || '';
+      document.getElementById('skillContent').value = s.content || '';
+      document.getElementById('skillUploadName').textContent = s.contentFile || '';
       document.querySelectorAll('.emoji-option').forEach(el => {
         el.classList.toggle('selected', el.dataset.emoji === s.icon);
       });
@@ -2018,6 +2020,8 @@ ${taskSummaries}${manualSection}`;
       document.getElementById('skillName').value = '';
       document.getElementById('skillDesc').value = '';
       document.getElementById('skillPrompt').value = '';
+      document.getElementById('skillContent').value = '';
+      document.getElementById('skillUploadName').textContent = '';
       document.querySelectorAll('.emoji-option').forEach(el => {
         el.classList.toggle('selected', el.dataset.emoji === '🔍');
       });
@@ -2031,17 +2035,17 @@ ${taskSummaries}${manualSection}`;
     const icon = document.querySelector('.emoji-option.selected')?.dataset.emoji || '🔍';
     const desc = document.getElementById('skillDesc').value.trim();
     const prompt = document.getElementById('skillPrompt').value.trim();
+    const content = document.getElementById('skillContent').value.trim();
 
     if (editingSkillId) {
       const s = skills.find(s => s.id === editingSkillId);
       if (s) {
-        s.name = name;
-        s.icon = icon;
-        s.desc = desc;
-        s.prompt = prompt;
+        s.name = name; s.icon = icon; s.desc = desc; s.prompt = prompt;
+        s.content = content; s.contentFile = document.getElementById('skillUploadName').textContent;
       }
     } else {
-      skills.push({ id: 'skill_' + Date.now(), name, icon, desc, prompt, createdAt: now() });
+      skills.push({ id: 'skill_' + Date.now(), name, icon, desc, prompt, content,
+        contentFile: document.getElementById('skillUploadName').textContent, createdAt: now() });
     }
     saveSkills();
     closeAllModals();
@@ -2064,8 +2068,24 @@ ${taskSummaries}${manualSection}`;
           <p style="font-size:var(--font-xs);color:var(--text-light)">${escapeHtml(s.desc || '')}</p>
         </div>
       </div>
-      ${s.prompt ? `<blockquote>${escapeHtml(s.prompt)}</blockquote>` : ''}
+      ${s.prompt ? `<blockquote>📋 ${escapeHtml(s.prompt)}</blockquote>` : ''}
     `;
+
+    // 展示 Skill 内容
+    const contentEl = document.getElementById('skillRunContent');
+    if (s.content) {
+      contentEl.innerHTML = `
+        <div class="skill-run-section">
+          <h4>📖 Skill 知识库</h4>
+          ${s.contentFile ? `<p style="font-size:10px;color:var(--text-light);display:flex;align-items:center;gap:4px;">📎 来源：${escapeHtml(s.contentFile)}</p>` : ''}
+          <div class="skill-run-body">${renderMarkdown(s.content)}</div>
+        </div>
+      `;
+      contentEl.classList.remove('hidden');
+    } else {
+      contentEl.classList.add('hidden');
+    }
+
     document.getElementById('skillRunInput').value = '';
     document.getElementById('skillRunResult').classList.add('hidden');
     document.getElementById('btnSkillExecute').classList.remove('hidden');
@@ -2316,6 +2336,20 @@ ${taskSummaries}${manualSection}`;
     document.getElementById('modalSkillFormSave').addEventListener('click', saveSkillForm);
     document.getElementById('modalSkillRunBack').addEventListener('click', closeAllModals);
     document.getElementById('btnSkillExecute').addEventListener('click', executeSkill);
+    document.getElementById('btnUploadMd').addEventListener('click', () => {
+      document.getElementById('skillMdFile').click();
+    });
+    document.getElementById('skillMdFile').addEventListener('change', () => {
+      const file = document.getElementById('skillMdFile').files[0];
+      if (!file) return;
+      document.getElementById('skillUploadName').textContent = file.name;
+      const reader = new FileReader();
+      reader.onload = () => {
+        document.getElementById('skillContent').value = reader.result;
+        showToast('已加载：' + file.name);
+      };
+      reader.readAsText(file);
+    });
     document.querySelectorAll('.emoji-option').forEach(opt => {
       opt.addEventListener('click', () => {
         opt.parentElement.querySelectorAll('.emoji-option').forEach(o => o.classList.remove('selected'));

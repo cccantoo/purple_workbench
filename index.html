@@ -400,6 +400,17 @@
         <label class="form-label">前置提示（执行时展示）</label>
         <textarea class="form-textarea" id="skillPrompt" rows="3" placeholder="用户执行此Skill时需要填写哪些参数？例如：评审对象、重点关注方向、相关资料链接..."></textarea>
       </div>
+      <div class="form-group">
+        <label class="form-label">Skill 内容 <span class="required">*</span>
+          <span class="form-hint-inline">直接输入 或 上传 .md 文件</span>
+        </label>
+        <textarea class="form-textarea" id="skillContent" rows="8" placeholder="Skill 的核心内容：知识体系、操作步骤、检查清单、参考资料...&#10;支持 Markdown 格式，执行时会渲染展示。"></textarea>
+        <div class="skill-upload-row">
+          <input type="file" id="skillMdFile" accept=".md,.txt" class="hidden">
+          <button class="btn-skill-upload" id="btnUploadMd">📎 上传 .md 文件</button>
+          <span class="skill-upload-name" id="skillUploadName"></span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -414,6 +425,7 @@
     </div>
     <div class="modal-body">
       <div class="skill-run-info" id="skillRunInfo"></div>
+      <div class="skill-run-content hidden" id="skillRunContent"></div>
       <div class="form-group">
         <label class="form-label">📋 前置资料 / 参数</label>
         <textarea class="form-textarea" id="skillRunInput" rows="5" placeholder="填写参数、粘贴资料、补充说明..."></textarea>
