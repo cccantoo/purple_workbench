@@ -107,6 +107,20 @@
     </div>
   </div>
 
+  <!-- 梦境页面 - 雾中落笔 -->
+  <div class="dreams-page hidden" id="dreamsPage">
+    <div class="dreams-header">
+      <h2 class="dreams-title">💭 雾中落笔</h2>
+      <button class="btn-dream-new" id="btnNewDream">+ 新梦境</button>
+    </div>
+    <div class="dreams-grid" id="dreamsGrid">
+      <div class="empty-state">
+        <div class="empty-icon"><img src="./icons/welcome.jpg" alt="empty"></div>
+        <p>还没有梦境记录，写下你的第一个梦境吧 🌙</p>
+      </div>
+    </div>
+  </div>
+
   <!-- 浮动操作按钮 -->
   <button class="fab" id="fabAdd" title="新建任务">+</button>
 
@@ -119,6 +133,10 @@
     <button class="nav-item" data-tab="skills">
       <span class="nav-icon">🎯</span>
       <span class="nav-text">技能</span>
+    </button>
+    <button class="nav-item" data-tab="dreams">
+      <span class="nav-icon">💭</span>
+      <span class="nav-text">梦境</span>
     </button>
     <button class="nav-item" data-tab="archive">
       <span class="nav-icon">📁</span>
@@ -436,6 +454,56 @@
         <p>AI 正在执行 Skill...</p>
       </div>
       <div class="skill-run-result hidden" id="skillRunResult"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 梦境表单模态框 -->
+<div class="modal-overlay hidden" id="modalDreamForm">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <button class="modal-back" id="modalDreamFormBack">← 返回</button>
+      <h2 class="modal-title" id="modalDreamFormTitle">记录梦境</h2>
+      <button class="modal-action" id="modalDreamFormSave">保存</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">标题</label>
+        <input type="text" class="form-input" id="dreamTitle" placeholder="给这段记录起个名字...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">梦境内容 <span class="required">*</span></label>
+        <textarea class="form-textarea dream-textarea" id="dreamContent" rows="10" placeholder="记录你的梦境、灵感、随笔、碎片化想法...&#10;不必斟酌语句，想到什么写什么。"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 织梦结果弹窗 -->
+<div class="modal-overlay hidden" id="modalDreamWeave">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <button class="modal-back" id="modalDreamWeaveBack">← 返回</button>
+      <h2 class="modal-title">🌙 织梦</h2>
+      <span></span>
+    </div>
+    <div class="modal-body">
+      <div class="dream-compare">
+        <div class="dream-compare-col">
+          <h4>📝 原始草稿</h4>
+          <div class="dream-compare-text" id="dreamWeaveOriginal"></div>
+        </div>
+        <div class="dream-compare-col">
+          <h4>✨ 织梦润色</h4>
+          <div class="ai-loading hidden" id="dreamWeaveLoading">
+            <div class="ai-loading-spinner"><img src="./icons/ai.jpg" alt="thinking"></div>
+            <p>AI 正在织梦...</p>
+          </div>
+          <div class="dream-compare-text hidden" id="dreamWeaveResult"></div>
+        </div>
+      </div>
+      <button class="btn-ai-generate hidden" id="btnDreamWeave">🌙 开始织梦</button>
+      <button class="btn-save-weave hidden" id="btnDreamWeaveSave">💾 保存润色版本</button>
     </div>
   </div>
 </div>

@@ -81,6 +81,7 @@
     } catch (e) {
       skillResults = [];
     }
+    loadDreams();
   }
 
   function saveData() {
@@ -1859,6 +1860,7 @@ ${taskSummaries}${manualSection}`;
       aiSummaries: aiSummaries,
       skills: skills,
       skillResults: skillResults,
+      dreams: dreams,
       tags: appData.tags,
       settings: settings,
       exportDate: now(),
@@ -1889,12 +1891,14 @@ ${taskSummaries}${manualSection}`;
           aiSummaries = data.aiSummaries || [];
           skills = data.skills || [];
           skillResults = data.skillResults || [];
+          dreams = data.dreams || [];
           settings = { ...settings, ...(data.settings || {}) };
           saveData();
           saveArchive();
           saveAISummaries();
           saveSkills();
           saveSkillResults();
+          saveDreams();
           saveSettings();
           refreshUI();
           showToast('数据导入成功 🌸');
@@ -1914,11 +1918,13 @@ ${taskSummaries}${manualSection}`;
       aiSummaries = [];
       skills = [];
       skillResults = [];
+      dreams = [];
       saveData();
       saveArchive();
       saveAISummaries();
       saveSkills();
       saveSkillResults();
+      saveDreams();
       refreshUI();
       showToast('所有数据已清除');
     });
@@ -2254,6 +2260,180 @@ ${input || '（用户未提供额外资料）'}
     });
   }
 
+  // ==================== 梦境模块 ====================
+  const DREAMS_KEY = 'purple_workbench_dreams';
+  let dreams = [];
+  let editingDreamId = null;
+  let weavingDream = null;
+
+  function loadDreams() {
+    try { dreams = JSON.parse(localStorage.getItem(DREAMS_KEY)) || []; }
+    catch (e) { dreams = []; }
+  }
+
+  function saveDreams() { localStorage.setItem(DREAMS_KEY, JSON.stringify(dreams)); }
+
+  function showDreamsPage() {
+    document.getElementById('statsPanel').classList.add('hidden');
+    document.querySelector('.search-bar').classList.add('hidden');
+    document.getElementById('filterBar').classList.add('hidden');
+    document.getElementById('taskList').classList.add('hidden');
+    document.getElementById('fabAdd').classList.add('hidden');
+    document.getElementById('skillsPage').classList.add('hidden');
+    document.getElementById('dreamsPage').classList.remove('hidden');
+    document.getElementById('btnAISummary').classList.add('hidden');
+    renderDreamsGrid();
+  }
+
+  function hideDreamsPage() {
+    document.getElementById('dreamsPage').classList.add('hidden');
+  }
+
+  function renderDreamsGrid() {
+    const container = document.getElementById('dreamsGrid');
+    if (dreams.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-icon"><img src="./icons/welcome.jpg" alt="empty"></div>
+        <p>还没有梦境记录，写下你的第一个梦境吧 🌙</p>
+      </div>`;
+      return;
+    }
+    container.innerHTML = dreams.map(d => `
+      <div class="dream-card" data-id="${d.id}">
+        <div class="dream-card-header">
+          <div class="dream-card-title">${escapeHtml(d.title || '无标题')}</div>
+          <div class="dream-card-date">${formatDateFull(d.createdAt)}</div>
+        </div>
+        <div class="dream-card-preview">${escapeHtml(d.content.substring(0, 200))}${d.content.length > 200 ? '...' : ''}</div>
+        <div class="dream-card-footer">
+          <span class="dream-card-badge${d.wovenVersion ? ' woven' : ''}">${d.wovenVersion ? '✨ 已织梦' : '📝 草稿'}</span>
+          <div class="dream-card-actions">
+            <button class="dream-card-btn" data-action="edit" data-id="${d.id}">✏️</button>
+            <button class="dream-card-btn" data-action="weave" data-id="${d.id}">🧵 织梦</button>
+            <button class="dream-card-btn" data-action="delete" data-id="${d.id}">🗑️</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('[data-action="edit"]').forEach(btn => {
+      btn.addEventListener('click', e => { e.stopPropagation(); openDreamForm(btn.dataset.id); });
+    });
+    container.querySelectorAll('[data-action="weave"]').forEach(btn => {
+      btn.addEventListener('click', e => { e.stopPropagation(); openDreamWeave(btn.dataset.id); });
+    });
+    container.querySelectorAll('[data-action="delete"]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        showConfirm('永久删除此梦境记录？', () => {
+          dreams = dreams.filter(d => d.id !== btn.dataset.id);
+          saveDreams(); renderDreamsGrid();
+          showToast('梦境已删除');
+        });
+      });
+    });
+    container.querySelectorAll('.dream-card').forEach(card => {
+      card.addEventListener('click', () => openDreamForm(card.dataset.id));
+    });
+  }
+
+  function openDreamForm(id) {
+    editingDreamId = id || null;
+    document.getElementById('modalDreamFormTitle').textContent = id ? '编辑梦境' : '记录梦境';
+    if (id) {
+      const d = dreams.find(d => d.id === id);
+      if (!d) return;
+      document.getElementById('dreamTitle').value = d.title || '';
+      document.getElementById('dreamContent').value = d.content || '';
+    } else {
+      document.getElementById('dreamTitle').value = '';
+      document.getElementById('dreamContent').value = '';
+    }
+    openModal('modalDreamForm');
+  }
+
+  function saveDreamForm() {
+    const content = document.getElementById('dreamContent').value.trim();
+    if (!content) { showToast('请写入内容'); return; }
+    const title = document.getElementById('dreamTitle').value.trim() || '无标题';
+
+    if (editingDreamId) {
+      const d = dreams.find(d => d.id === editingDreamId);
+      if (d) { d.title = title; d.content = content; }
+    } else {
+      dreams.unshift({ id: 'dream_' + Date.now(), title, content, wovenVersion: null, createdAt: now() });
+    }
+    if (dreams.length > 100) dreams = dreams.slice(0, 100);
+    saveDreams(); closeAllModals(); renderDreamsGrid();
+    showToast(editingDreamId ? '梦境已更新' : '梦境已保存 🌙');
+    editingDreamId = null;
+  }
+
+  function openDreamWeave(id) {
+    const d = dreams.find(d => d.id === id);
+    if (!d) return;
+    weavingDream = d;
+    document.getElementById('dreamWeaveOriginal').textContent = d.content;
+    document.getElementById('dreamWeaveResult').classList.add('hidden');
+    document.getElementById('dreamWeaveLoading').classList.add('hidden');
+    document.getElementById('btnDreamWeave').classList.remove('hidden');
+    document.getElementById('btnDreamWeaveSave').classList.add('hidden');
+    openModal('modalDreamWeave');
+  }
+
+  async function doDreamWeave() {
+    if (!weavingDream) return;
+    document.getElementById('btnDreamWeave').classList.add('hidden');
+    document.getElementById('dreamWeaveLoading').classList.remove('hidden');
+
+    const apiKey = settings.apiKey;
+    if (!apiKey || !apiKey.trim()) {
+      document.getElementById('dreamWeaveLoading').classList.add('hidden');
+      document.getElementById('dreamWeaveResult').textContent = '💡 未配置 API Key，请先在设置中填入 DeepSeek API Key。';
+      document.getElementById('dreamWeaveResult').classList.remove('hidden');
+      return;
+    }
+
+    try {
+      const resp = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: settings.model || 'deepseek-v4-flash',
+          messages: [
+            { role: 'system', content: '你是一位文学编辑，擅长将碎片化文字梳理成通顺段落。严格保留原文的核心想法、人物、情节设定，仅理顺语句逻辑、补充自然细节，文风贴合用户原本语感。不浮夸改写、不篡改原创思路。只返回润色后的纯文本，不要解释。' },
+            { role: 'user', content: `请将以下碎片化文字整理为通顺完整的段落。保留原文核心想法、人物、情节，只理顺语句、补充自然细节，文风要贴合原作者的语感：\n\n${weavingDream.content}` }
+          ],
+          thinking: { type: 'disabled' },
+          temperature: 0.7, max_tokens: 2000, stream: false
+        })
+      });
+      const data = await resp.json();
+      const result = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning_content || '（织梦失败）';
+      document.getElementById('dreamWeaveLoading').classList.add('hidden');
+      document.getElementById('dreamWeaveResult').textContent = result;
+      document.getElementById('dreamWeaveResult').classList.remove('hidden');
+      document.getElementById('btnDreamWeaveSave').classList.remove('hidden');
+
+      // 临时存结果
+      document.getElementById('btnDreamWeaveSave')._wovenText = result;
+    } catch (e) {
+      document.getElementById('dreamWeaveLoading').classList.add('hidden');
+      document.getElementById('dreamWeaveResult').textContent = '织梦失败: ' + e.message;
+      document.getElementById('dreamWeaveResult').classList.remove('hidden');
+    }
+  }
+
+  function saveWovenVersion() {
+    const wovenText = document.getElementById('btnDreamWeaveSave')._wovenText;
+    if (!wovenText || !weavingDream) return;
+    const d = dreams.find(d => d.id === weavingDream.id);
+    if (d) { d.wovenVersion = wovenText; saveDreams(); }
+    closeAllModals(); renderDreamsGrid();
+    showToast('织梦版本已保存 ✨');
+    weavingDream = null;
+  }
+
   // ==================== Toast ====================
   let toastTimer;
 
@@ -2331,8 +2511,9 @@ ${input || '（用户未提供额外资料）'}
 
         if (currentTab === 'archive') { openArchiveModal(); }
         else if (currentTab === 'skills') { showSkillsPage(); }
+        else if (currentTab === 'dreams') { showDreamsPage(); }
         else if (currentTab === 'settings') { openSettingsModal(); }
-        else { hideSkillsPage(); }
+        else { hideSkillsPage(); hideDreamsPage(); }
         // tasks tab restores default view
       });
     });
@@ -2411,6 +2592,14 @@ ${input || '（用户未提供额外资料）'}
     document.getElementById('modalSkillFormSave').addEventListener('click', saveSkillForm);
     document.getElementById('modalSkillRunBack').addEventListener('click', closeAllModals);
     document.getElementById('btnSkillExecute').addEventListener('click', executeSkill);
+
+    // Dream bindings
+    document.getElementById('btnNewDream').addEventListener('click', () => openDreamForm(null));
+    document.getElementById('modalDreamFormBack').addEventListener('click', closeAllModals);
+    document.getElementById('modalDreamFormSave').addEventListener('click', saveDreamForm);
+    document.getElementById('modalDreamWeaveBack').addEventListener('click', closeAllModals);
+    document.getElementById('btnDreamWeave').addEventListener('click', doDreamWeave);
+    document.getElementById('btnDreamWeaveSave').addEventListener('click', saveWovenVersion);
     document.getElementById('btnUploadMd').addEventListener('click', () => {
       document.getElementById('skillMdFile').click();
     });
