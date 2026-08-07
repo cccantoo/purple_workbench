@@ -2088,21 +2088,58 @@ ${taskSummaries}${manualSection}`;
 
     document.getElementById('skillRunInput').value = '';
     document.getElementById('skillRunResult').classList.add('hidden');
+    document.getElementById('skillRunLoading').classList.add('hidden');
     document.getElementById('btnSkillExecute').classList.remove('hidden');
     openModal('modalSkillRun');
   }
 
-  function executeSkill() {
+  async function executeSkill() {
     if (!runningSkill) return;
     const input = document.getElementById('skillRunInput').value.trim();
 
+    // 显示 loading
+    document.getElementById('btnSkillExecute').classList.add('hidden');
+    document.getElementById('skillRunLoading').classList.remove('hidden');
+    document.getElementById('skillRunResult').classList.add('hidden');
+
+    // 构建 prompt
+    const skillContent = runningSkill.content || '';
+    const prompt = `你是一位专业技术导师。请根据以下 Skill 内容和用户提供的信息，进行分析、评审或总结。
+
+【Skill 名称】${runningSkill.name}
+【Skill 描述】${runningSkill.desc || '无'}
+
+【Skill 知识库内容】
+${skillContent || '（无内容）'}
+
+【用户提交的资料/参数】
+${input || '（用户未提供额外资料）'}
+
+请基于以上内容输出一份结构化的分析报告，使用 HTML 格式（div/h4/h5/ul/li/pre/code/blockquote/table），不要用 Markdown。`;
+
+    let resultHtml;
+    try {
+      resultHtml = await callSkillAPI(prompt);
+    } catch (e) {
+      resultHtml = `<div class="ai-result-section" style="background:#FFF0F0;border:1px solid #F5D0D0;border-radius:var(--radius-md);padding:16px;">
+        <h4 style="color:#C56A6A;">❌ skill执行失败</h4>
+        <p style="font-size:var(--font-xs);color:#A06060;">${escapeHtml(e.message)}</p>
+        <p style="font-size:10px;color:var(--text-light);margin-top:8px;">💡 请检查 API Key 是否已配置、网络是否正常</p>
+      </div>`;
+    }
+
+    document.getElementById('skillRunLoading').classList.add('hidden');
+    document.getElementById('skillRunResult').innerHTML = resultHtml;
+    document.getElementById('skillRunResult').classList.remove('hidden');
+
+    // 保存结果
     const resultRecord = {
       id: 'skres_' + Date.now(),
       skillId: runningSkill.id,
       skillName: runningSkill.name,
       skillIcon: runningSkill.icon,
       input: input,
-      result: `Skill「${runningSkill.name}」执行完成 ✅\n\n${input ? '你提交的前置资料：\n' + input + '\n\n' : ''}建议归档此结果以便回顾。`,
+      result: resultHtml,
       createdAt: now(),
       archived: false
     };
@@ -2110,25 +2147,61 @@ ${taskSummaries}${manualSection}`;
     if (skillResults.length > 50) skillResults = skillResults.slice(0, 50);
     saveSkillResults();
 
-    document.getElementById('skillRunResult').innerHTML = `
-      <div class="ai-result-section">
-        <h4>✅ 执行完成</h4>
-        <p>Skill「<strong>${escapeHtml(runningSkill.name)}</strong>」已执行。</p>
-        ${input ? `<p>📋 提交内容：<br><em>${escapeHtml(input.substring(0, 200))}${input.length > 200 ? '...' : ''}</em></p>` : ''}
-      </div>
-      <div style="margin-top:12px;">
-        <button class="btn-archive-skill" id="btnArchiveSkillResult" data-id="${resultRecord.id}">📁 归档此结果</button>
-      </div>
-    `;
-    document.getElementById('skillRunResult').classList.remove('hidden');
-    document.getElementById('btnSkillExecute').classList.add('hidden');
-
-    document.getElementById('btnArchiveSkillResult').addEventListener('click', () => {
-      const res = skillResults.find(r => r.id === document.getElementById('btnArchiveSkillResult').dataset.id);
-      if (res) res.archived = true;
-      saveSkillResults();
-      showToast('结果已归档 📁');
+    // 加归档按钮
+    const archiveBtn = document.createElement('div');
+    archiveBtn.style.cssText = 'margin-top:12px;';
+    archiveBtn.innerHTML = `<button class="btn-archive-skill" onclick="this.style.display='none';event.stopPropagation();">📁 已自动保存，点击归档</button>`;
+    archiveBtn.querySelector('button').addEventListener('click', () => {
+      const res = skillResults.find(r => r.id === resultRecord.id);
+      if (res) { res.archived = true; saveSkillResults(); showToast('结果已归档 📁'); }
+      archiveBtn.querySelector('button').textContent = '✅ 已归档';
     });
+    document.getElementById('skillRunResult').appendChild(archiveBtn);
+  }
+
+  async function callSkillAPI(prompt) {
+    const apiKey = settings.apiKey;
+    if (!apiKey || !apiKey.trim()) {
+      // 本地 fallback
+      return `<div class="ai-result-section"><h4>⚡ 本地分析结果</h4>
+        <blockquote>未配置 API Key，使用本地智能模式。</blockquote>
+        <p>Skill 已记录。如需 AI 深度分析，请在 设置 → DeepSeek API Key 中填入密钥后重试。</p>
+        <p style="font-size:10px;color:var(--text-light);">💡 提示：Skill 内容和参数已保存到归档，配好 API Key 后可随时重新执行。</p>
+      </div>`;
+    }
+
+    const baseUrl = 'https://api.deepseek.com';
+    const model = settings.model || 'deepseek-v4-flash';
+
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: '你是一位专业技术导师，负责根据 Skill 知识库内容和用户提交的资料进行分析和评审。回复使用纯 HTML（div/h4/h5/ul/li/pre/code/blockquote/table），禁止 Markdown 和代码块标记。' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 2500,
+        stream: false
+      })
+    });
+
+    if (!response.ok) {
+      let errMsg = `API 返回错误 (HTTP ${response.status})`;
+      try {
+        const errData = await response.json();
+        if (errData.error?.message) errMsg = errData.error.message;
+      } catch (_) {}
+      throw new Error(errMsg);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '（API 返回了空结果）';
   }
 
   function renderSkillArchive(filter = '') {
