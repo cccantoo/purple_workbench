@@ -779,6 +779,7 @@ ${taskSummaries}${manualSection}`;
             { role: 'system', content: '你是一位犀利直接的技术面试评审（风格参考 ClawBot：先判断对错，再给结构化标准答案，最后给口诀）。语气严厉但不嘲讽，可以鼓励但不堆砌鼓励性空话，专门把学生的流水账笔记提炼成可背诵、可面试的硬核笔记。回复使用纯 HTML 片段（div/h3/h4/ul/li/p/table/tr/td/th/code/pre 标签），禁止用 Markdown 和代码块标记。' },
             { role: 'user', content: prompt }
           ],
+          thinking: { type: 'disabled' },
           temperature: 0.7,
           max_tokens: 4000,
           stream: false
@@ -801,7 +802,7 @@ ${taskSummaries}${manualSection}`;
     }
 
     const data = await response.json();
-    let content = data.choices?.[0]?.message?.content || '';
+    let content = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning_content || '';
 
     // Clean markdown code blocks
     content = content.replace(/```html?\n?/g, '').replace(/```\n?/g, '').trim();
@@ -2185,6 +2186,7 @@ ${input || '（用户未提供额外资料）'}
           { role: 'system', content: '你是一位专业技术导师，负责根据 Skill 知识库内容和用户提交的资料进行分析和评审。回复使用纯 HTML（div/h4/h5/ul/li/pre/code/blockquote/table），禁止 Markdown 和代码块标记。' },
           { role: 'user', content: prompt }
         ],
+        thinking: { type: 'disabled' },
         temperature: 0.7,
         max_tokens: 2500,
         stream: false
@@ -2201,7 +2203,7 @@ ${input || '（用户未提供额外资料）'}
     }
 
     const data = await response.json();
-    return data.choices?.[0]?.message?.content || '（API 返回了空结果）';
+    return data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning_content || '（API 返回了空结果）';
   }
 
   function renderSkillArchive(filter = '') {
