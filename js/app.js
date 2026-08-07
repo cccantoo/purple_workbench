@@ -2302,12 +2302,10 @@ ${input || '（用户未提供额外资料）'}
       <div class="dream-card" data-id="${d.id}">
         <div class="dream-card-header">
           <div class="dream-card-title">${escapeHtml(d.title || '无标题')}</div>
+          <span class="dream-card-badge${d.wovenVersion ? ' woven' : ''}">${d.wovenVersion ? '✨' : '📝'}</span>
           <div class="dream-card-date">${formatDateFull(d.createdAt)}</div>
         </div>
-        <div class="dream-card-preview">${escapeHtml(d.content.substring(0, 140))}${d.content.length > 140 ? '...' : ''}</div>
-        <div class="dream-card-footer">
-          <span class="dream-card-badge${d.wovenVersion ? ' woven' : ''}">${d.wovenVersion ? '✨ 已织梦' : '📝 草稿'}</span>
-        </div>
+        <div class="dream-card-preview">${escapeHtml(d.content.substring(0, 100))}${d.content.length > 100 ? '...' : ''}</div>
       </div>
     `).join('');
 

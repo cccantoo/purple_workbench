@@ -1010,43 +1010,49 @@ body {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: none;
-  padding: 22px 18px 18px;
+  padding: 16px 14px 14px;
   cursor: pointer;
   animation: cloudFloat1 7s ease-in-out infinite;
   box-shadow:
-    0 0 35px rgba(200,180,230,0.12),
-    0 6px 24px rgba(160,130,200,0.07),
-    inset 0 0 25px rgba(255,255,255,0.35);
+    0 0 30px rgba(200,180,230,0.1),
+    0 4px 16px rgba(160,130,200,0.05),
+    inset 0 0 20px rgba(255,255,255,0.3);
+  max-width: 82%;
+  align-self: center;
 }
 
 /* 云朵形状变体 — 大小不一 */
 .dream-card:nth-child(4n+1) {
   border-radius: 40% 60% 35% 65% / 55% 45% 55% 45%;
-  padding: 24px 20px 20px;
-  margin-left: 6px;
-  margin-right: 10px;
+  padding: 15px 14px 14px;
+  margin-left: auto;
+  margin-right: 8%;
+  max-width: 78%;
 }
 .dream-card:nth-child(4n+2) {
   border-radius: 55% 45% 60% 40% / 40% 60% 45% 55%;
-  padding: 20px 22px 18px;
-  margin-left: 12px;
-  margin-right: 4px;
+  padding: 13px 14px 12px;
+  margin-left: 6%;
+  margin-right: auto;
+  max-width: 75%;
   animation-name: cloudFloat2;
   animation-duration: 8s;
 }
 .dream-card:nth-child(4n+3) {
   border-radius: 60% 40% 50% 50% / 50% 55% 45% 50%;
-  padding: 18px 18px 22px;
-  margin-left: 4px;
-  margin-right: 12px;
+  padding: 14px 13px 13px;
+  margin-left: auto;
+  margin-right: 3%;
+  max-width: 80%;
   animation-name: cloudFloat3;
   animation-duration: 6.5s;
 }
 .dream-card:nth-child(4n+4) {
   border-radius: 50% 50% 58% 42% / 45% 52% 48% 55%;
-  padding: 26px 16px 16px;
-  margin-left: 14px;
-  margin-right: 2px;
+  padding: 15px 12px 12px;
+  margin-left: 4%;
+  margin-right: auto;
+  max-width: 72%;
   animation-name: cloudFloat4;
   animation-duration: 9s;
 }
@@ -1055,56 +1061,55 @@ body {
 
 .dream-card-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
 .dream-card-title {
-  font-size: var(--font-base);
+  font-size: var(--font-sm);
   font-weight: 500;
   color: var(--purple-700);
   opacity: 0.85;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .dream-card-date {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-light);
-  opacity: 0.6;
+  opacity: 0.55;
+  white-space: nowrap;
 }
 
 .dream-card-preview {
   font-size: var(--font-xs);
   color: var(--text-secondary);
-  line-height: 1.7;
-  opacity: 0.75;
+  line-height: 1.6;
+  opacity: 0.7;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .dream-card-footer {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(180,140,210,0.12);
+  margin-top: 8px;
 }
 
 .dream-card-badge {
-  font-size: 9px;
-  padding: 3px 8px;
+  font-size: 8px;
+  padding: 2px 6px;
   border-radius: var(--radius-full);
-  background: rgba(180,140,210,0.15);
+  background: rgba(180,140,210,0.12);
   color: var(--purple-500);
-  display: inline-block;
 }
 
-.dream-card-badge.woven { background: rgba(140,200,160,0.15); color: #6BA88A; }
+.dream-card-badge.woven { background: rgba(140,200,160,0.12); color: #6BA88A; }
 
-/* 梦境详情弹窗 */
 .dream-detail-date {
   font-size: var(--font-xs);
   color: var(--text-light);
