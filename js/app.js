@@ -2105,18 +2105,18 @@ ${taskSummaries}${manualSection}`;
 
     // 构建 prompt
     const skillContent = runningSkill.content || '';
-    const prompt = `你是一位专业技术导师。请根据以下 Skill 内容和用户提供的信息，进行分析、评审或总结。
+    const prompt = `你是一个专业工具的执行者。请严格按照以下 Skill 的定义来**执行这个 Skill**，将用户提交的资料作为输入，输出该 Skill 定义的结果。
 
-【Skill 名称】${runningSkill.name}
-【Skill 描述】${runningSkill.desc || '无'}
+【你要执行的 Skill】
+名称：${runningSkill.name}
+描述：${runningSkill.desc || '无'}
+执行规则/知识库：
+${skillContent || '（无）'}
 
-【Skill 知识库内容】
-${skillContent || '（无内容）'}
-
-【用户提交的资料/参数】
+【用户提交的输入】
 ${input || '（用户未提供额外资料）'}
 
-请基于以上内容输出一份结构化的分析报告，使用 HTML 格式（div/h4/h5/ul/li/pre/code/blockquote/table），不要用 Markdown。`;
+重要：你不是在评审这个 Skill 本身，你是这个 Skill 的执行引擎。请按照 Skill 定义的规则处理用户输入，输出 Skill 最终结果。使用 HTML 格式（div/h4/h5/ul/li/pre/code/blockquote/table），不要用 Markdown。`;
 
     let resultHtml;
     try {
@@ -2183,7 +2183,7 @@ ${input || '（用户未提供额外资料）'}
       body: JSON.stringify({
         model: model,
         messages: [
-          { role: 'system', content: '你是一位专业技术导师，负责根据 Skill 知识库内容和用户提交的资料进行分析和评审。回复使用纯 HTML（div/h4/h5/ul/li/pre/code/blockquote/table），禁止 Markdown 和代码块标记。' },
+          { role: 'system', content: '你是一个 Skill 执行引擎。你不是在评审 Skill 本身，而是根据 Skill 定义的规则处理用户输入，输出该 Skill 的执行结果。回复使用纯 HTML（div/h4/h5/ul/li/pre/code/blockquote/table），禁止 Markdown 和代码块标记。' },
           { role: 'user', content: prompt }
         ],
         thinking: { type: 'disabled' },
