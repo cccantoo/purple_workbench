@@ -11,6 +11,8 @@
   const ARCHIVE_KEY = 'purple_workbench_archive';
   const TAG_PRESETS_KEY = 'purple_workbench_tags';
   const AI_SUMMARY_KEY = 'purple_workbench_ai_summaries';
+  const SKILLS_KEY = 'purple_workbench_skills';
+  const SKILL_RESULTS_KEY = 'purple_workbench_skill_results';
 
   const DEFAULT_TAGS = ['TS', 'JS', '前端', '后端', '算法', '项目', '面试', '学习', '刷题', 'React', 'Vue', 'Node', 'Python', 'LeetCode', '设计模式', '数据库','learn-cc'];
 
@@ -25,6 +27,8 @@
     model: 'deepseek-v4-flash'
   };
   let aiSummaries = [];
+  let skills = [];
+  let skillResults = [];
 
   let currentFilter = 'all';
   let currentTagFilter = null;
@@ -63,6 +67,20 @@
     } catch (e) {
       aiSummaries = [];
     }
+
+    try {
+      const raw = localStorage.getItem(SKILLS_KEY);
+      skills = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      skills = [];
+    }
+
+    try {
+      const raw = localStorage.getItem(SKILL_RESULTS_KEY);
+      skillResults = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      skillResults = [];
+    }
   }
 
   function saveData() {
@@ -71,6 +89,14 @@
 
   function saveAISummaries() {
     localStorage.setItem(AI_SUMMARY_KEY, JSON.stringify(aiSummaries));
+  }
+
+  function saveSkills() {
+    localStorage.setItem(SKILLS_KEY, JSON.stringify(skills));
+  }
+
+  function saveSkillResults() {
+    localStorage.setItem(SKILL_RESULTS_KEY, JSON.stringify(skillResults));
   }
 
   function saveArchive() {
@@ -1678,14 +1704,19 @@ ${taskSummaries}${manualSection}`;
   }
 
   function renderArchiveViews(filter = '') {
+    document.getElementById('archiveList').classList.add('hidden');
+    document.getElementById('archiveAIList').classList.add('hidden');
+    document.getElementById('archiveSkillList').classList.add('hidden');
+
     if (currentArchiveTab === 'archive-tasks') {
       document.getElementById('archiveList').classList.remove('hidden');
-      document.getElementById('archiveAIList').classList.add('hidden');
       renderTaskArchive(filter);
-    } else {
-      document.getElementById('archiveList').classList.add('hidden');
+    } else if (currentArchiveTab === 'archive-ai') {
       document.getElementById('archiveAIList').classList.remove('hidden');
       renderAIArchive(filter);
+    } else {
+      document.getElementById('archiveSkillList').classList.remove('hidden');
+      renderSkillArchive(filter);
     }
   }
 
@@ -1825,6 +1856,8 @@ ${taskSummaries}${manualSection}`;
       tasks: appData.tasks,
       archive: archivedTasks,
       aiSummaries: aiSummaries,
+      skills: skills,
+      skillResults: skillResults,
       tags: appData.tags,
       settings: settings,
       exportDate: now(),
@@ -1853,10 +1886,14 @@ ${taskSummaries}${manualSection}`;
           appData.tags = data.tags || [...DEFAULT_TAGS];
           archivedTasks = data.archive || [];
           aiSummaries = data.aiSummaries || [];
+          skills = data.skills || [];
+          skillResults = data.skillResults || [];
           settings = { ...settings, ...(data.settings || {}) };
           saveData();
           saveArchive();
           saveAISummaries();
+          saveSkills();
+          saveSkillResults();
           saveSettings();
           refreshUI();
           showToast('数据导入成功 🌸');
@@ -1869,16 +1906,256 @@ ${taskSummaries}${manualSection}`;
   }
 
   function clearAllData() {
-    showConfirm('⚠️ 此操作将永久删除所有任务、小结、归档和AI总结数据，不可恢复！确定继续？', () => {
+    showConfirm('⚠️ 此操作将永久删除所有任务、小结、归档、AI总结和Skill数据，不可恢复！确定继续？', () => {
       appData.tasks = [];
       appData.tags = [...DEFAULT_TAGS];
       archivedTasks = [];
       aiSummaries = [];
+      skills = [];
+      skillResults = [];
       saveData();
       saveArchive();
       saveAISummaries();
+      saveSkills();
+      saveSkillResults();
       refreshUI();
       showToast('所有数据已清除');
+    });
+  }
+
+  // ==================== Skill 矩阵 ====================
+  const SKILL_EMOJI_OPTIONS = ['🔍','💻','📐','🎨','🐛','🚀','📊','🔧','📝','🧪','📚','⚙️','🗂️','🔐','🤖','📡'];
+  let editingSkillId = null;
+  let runningSkill = null;
+
+  function showSkillsPage() {
+    // 隐藏任务相关UI，显示Skill页面
+    document.getElementById('statsPanel').classList.add('hidden');
+    document.querySelector('.search-bar').classList.add('hidden');
+    document.getElementById('filterBar').classList.add('hidden');
+    document.getElementById('taskList').classList.add('hidden');
+    document.getElementById('fabAdd').classList.add('hidden');
+    document.getElementById('btnAISummary').classList.add('hidden');
+    document.getElementById('skillsPage').classList.remove('hidden');
+    renderSkillsGrid();
+  }
+
+  function hideSkillsPage() {
+    document.getElementById('statsPanel').classList.remove('hidden');
+    document.querySelector('.search-bar').classList.remove('hidden');
+    document.getElementById('filterBar').classList.remove('hidden');
+    document.getElementById('taskList').classList.remove('hidden');
+    document.getElementById('fabAdd').classList.remove('hidden');
+    document.getElementById('btnAISummary').classList.remove('hidden');
+    document.getElementById('skillsPage').classList.add('hidden');
+  }
+
+  function renderSkillsGrid() {
+    const container = document.getElementById('skillsGrid');
+    if (skills.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-icon"><img src="./icons/welcome.jpg" alt="empty"></div>
+        <p>还没有 Skill，点击右上角创建你的第一个技能吧 🌸</p>
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = skills.map(s => `
+      <div class="skill-card" data-id="${s.id}">
+        <div class="skill-card-header">
+          <span class="skill-card-icon">${escapeHtml(s.icon)}</span>
+          <div class="skill-card-actions">
+            <button class="skill-card-btn" data-action="edit" data-id="${s.id}">✏️</button>
+            <button class="skill-card-btn skill-card-btn-del" data-action="delete" data-id="${s.id}">🗑️</button>
+          </div>
+        </div>
+        <div class="skill-card-name">${escapeHtml(s.name)}</div>
+        <div class="skill-card-desc">${escapeHtml(s.desc || '暂无描述')}</div>
+        <div class="skill-card-footer">
+          <span class="skill-card-count">${(skillResults || []).filter(r => r.skillId === s.id).length} 次执行</span>
+          <button class="skill-card-run" data-action="run" data-id="${s.id}">⚡ 执行</button>
+        </div>
+      </div>
+    `).join('');
+
+    // 事件绑定
+    container.querySelectorAll('[data-action="run"]').forEach(btn => {
+      btn.addEventListener('click', (e) => { e.stopPropagation(); openSkillRun(btn.dataset.id); });
+    });
+    container.querySelectorAll('[data-action="edit"]').forEach(btn => {
+      btn.addEventListener('click', (e) => { e.stopPropagation(); openSkillForm(btn.dataset.id); });
+    });
+    container.querySelectorAll('[data-action="delete"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showConfirm('确定删除此 Skill？相关执行结果保留在归档中。', () => {
+          skills = skills.filter(s => s.id !== btn.dataset.id);
+          saveSkills();
+          renderSkillsGrid();
+          showToast('Skill 已删除');
+        });
+      });
+    });
+    container.querySelectorAll('.skill-card').forEach(card => {
+      card.addEventListener('click', () => openSkillRun(card.dataset.id));
+    });
+  }
+
+  function openSkillForm(id) {
+    editingSkillId = id || null;
+    document.getElementById('modalSkillFormTitle').textContent = id ? '编辑 Skill' : '新建 Skill';
+
+    if (id) {
+      const s = skills.find(s => s.id === id);
+      if (!s) return;
+      document.getElementById('skillName').value = s.name;
+      document.getElementById('skillDesc').value = s.desc || '';
+      document.getElementById('skillPrompt').value = s.prompt || '';
+      document.querySelectorAll('.emoji-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.emoji === s.icon);
+      });
+    } else {
+      document.getElementById('skillName').value = '';
+      document.getElementById('skillDesc').value = '';
+      document.getElementById('skillPrompt').value = '';
+      document.querySelectorAll('.emoji-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.emoji === '🔍');
+      });
+    }
+    openModal('modalSkillForm');
+  }
+
+  function saveSkillForm() {
+    const name = document.getElementById('skillName').value.trim();
+    if (!name) { showToast('请输入 Skill 名称'); return; }
+    const icon = document.querySelector('.emoji-option.selected')?.dataset.emoji || '🔍';
+    const desc = document.getElementById('skillDesc').value.trim();
+    const prompt = document.getElementById('skillPrompt').value.trim();
+
+    if (editingSkillId) {
+      const s = skills.find(s => s.id === editingSkillId);
+      if (s) {
+        s.name = name;
+        s.icon = icon;
+        s.desc = desc;
+        s.prompt = prompt;
+      }
+    } else {
+      skills.push({ id: 'skill_' + Date.now(), name, icon, desc, prompt, createdAt: now() });
+    }
+    saveSkills();
+    closeAllModals();
+    renderSkillsGrid();
+    showToast(editingSkillId ? 'Skill 已更新' : 'Skill 已创建 🎯');
+    editingSkillId = null;
+  }
+
+  function openSkillRun(id) {
+    const s = skills.find(s => s.id === id);
+    if (!s) return;
+    runningSkill = s;
+
+    document.getElementById('modalSkillRunTitle').textContent = s.icon + ' ' + s.name;
+    document.getElementById('skillRunInfo').innerHTML = `
+      <div class="skill-run-header">
+        <span class="skill-run-icon">${escapeHtml(s.icon)}</span>
+        <div>
+          <strong>${escapeHtml(s.name)}</strong>
+          <p style="font-size:var(--font-xs);color:var(--text-light)">${escapeHtml(s.desc || '')}</p>
+        </div>
+      </div>
+      ${s.prompt ? `<blockquote>${escapeHtml(s.prompt)}</blockquote>` : ''}
+    `;
+    document.getElementById('skillRunInput').value = '';
+    document.getElementById('skillRunResult').classList.add('hidden');
+    document.getElementById('btnSkillExecute').classList.remove('hidden');
+    openModal('modalSkillRun');
+  }
+
+  function executeSkill() {
+    if (!runningSkill) return;
+    const input = document.getElementById('skillRunInput').value.trim();
+
+    const resultRecord = {
+      id: 'skres_' + Date.now(),
+      skillId: runningSkill.id,
+      skillName: runningSkill.name,
+      skillIcon: runningSkill.icon,
+      input: input,
+      result: `Skill「${runningSkill.name}」执行完成 ✅\n\n${input ? '你提交的前置资料：\n' + input + '\n\n' : ''}建议归档此结果以便回顾。`,
+      createdAt: now(),
+      archived: false
+    };
+    skillResults.unshift(resultRecord);
+    if (skillResults.length > 50) skillResults = skillResults.slice(0, 50);
+    saveSkillResults();
+
+    document.getElementById('skillRunResult').innerHTML = `
+      <div class="ai-result-section">
+        <h4>✅ 执行完成</h4>
+        <p>Skill「<strong>${escapeHtml(runningSkill.name)}</strong>」已执行。</p>
+        ${input ? `<p>📋 提交内容：<br><em>${escapeHtml(input.substring(0, 200))}${input.length > 200 ? '...' : ''}</em></p>` : ''}
+      </div>
+      <div style="margin-top:12px;">
+        <button class="btn-archive-skill" id="btnArchiveSkillResult" data-id="${resultRecord.id}">📁 归档此结果</button>
+      </div>
+    `;
+    document.getElementById('skillRunResult').classList.remove('hidden');
+    document.getElementById('btnSkillExecute').classList.add('hidden');
+
+    document.getElementById('btnArchiveSkillResult').addEventListener('click', () => {
+      const res = skillResults.find(r => r.id === document.getElementById('btnArchiveSkillResult').dataset.id);
+      if (res) res.archived = true;
+      saveSkillResults();
+      showToast('结果已归档 📁');
+    });
+  }
+
+  function renderSkillArchive(filter = '') {
+    const container = document.getElementById('archiveSkillList');
+    let items = [...skillResults];
+
+    if (filter.trim()) {
+      const q = filter.trim().toLowerCase();
+      items = items.filter(r => r.skillName.toLowerCase().includes(q) || (r.input || '').toLowerCase().includes(q));
+    }
+
+    if (items.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-icon"><img src="./icons/welcome.jpg" alt="empty"></div>
+        <p>暂无 Skill 结果归档</p>
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = items.map(r => `
+      <div class="archive-item">
+        <div class="archive-info">
+          <div class="archive-title">${escapeHtml(r.skillIcon)} ${escapeHtml(r.skillName)}</div>
+          <div class="archive-meta">${formatDateFull(r.createdAt)} · ${r.input ? r.input.substring(0, 40) + '...' : '无输入'}</div>
+        </div>
+        <div class="archive-item-actions">
+          <button class="btn-restore" data-id="${r.id}">👁️ 查看</button>
+          <button class="btn-archive-delete" data-id="${r.id}">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.btn-restore').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const res = skillResults.find(r => r.id === btn.dataset.id);
+        if (res) { alert(`Skill: ${res.skillName}\n\n输入: ${res.input || '无'}\n\n结果: ${res.result}`); }
+      });
+    });
+    container.querySelectorAll('.btn-archive-delete').forEach(btn => {
+      btn.addEventListener('click', () => {
+        showConfirm('永久删除此 Skill 结果？', () => {
+          skillResults = skillResults.filter(r => r.id !== btn.dataset.id);
+          saveSkillResults();
+          renderArchiveViews(document.getElementById('archiveSearch').value);
+          showToast('已永久删除');
+        });
+      });
     });
   }
 
@@ -1957,9 +2234,11 @@ ${taskSummaries}${manualSection}`;
         item.classList.add('active');
         currentTab = item.dataset.tab;
 
-        if (currentTab === 'archive') openArchiveModal();
-        else if (currentTab === 'settings') openSettingsModal();
-        // tasks tab is the default view — already visible
+        if (currentTab === 'archive') { openArchiveModal(); }
+        else if (currentTab === 'skills') { showSkillsPage(); }
+        else if (currentTab === 'settings') { openSettingsModal(); }
+        else { hideSkillsPage(); }
+        // tasks tab restores default view
       });
     });
 
@@ -2030,6 +2309,19 @@ ${taskSummaries}${manualSection}`;
       e.target.value = '';
     });
     document.getElementById('btnClearData').addEventListener('click', clearAllData);
+
+    // Skill bindings
+    document.getElementById('btnAddSkill').addEventListener('click', () => openSkillForm(null));
+    document.getElementById('modalSkillFormBack').addEventListener('click', closeAllModals);
+    document.getElementById('modalSkillFormSave').addEventListener('click', saveSkillForm);
+    document.getElementById('modalSkillRunBack').addEventListener('click', closeAllModals);
+    document.getElementById('btnSkillExecute').addEventListener('click', executeSkill);
+    document.querySelectorAll('.emoji-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        opt.parentElement.querySelectorAll('.emoji-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+      });
+    });
 
     // Confirm dialog
     document.getElementById('confirmCancel').addEventListener('click', () => {

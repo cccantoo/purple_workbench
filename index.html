@@ -93,6 +93,20 @@
     </div>
   </main>
 
+  <!-- Skills 技能矩阵页面 -->
+  <div class="skills-page hidden" id="skillsPage">
+    <div class="skills-header">
+      <h2 class="skills-title">🎯 Skill 矩阵</h2>
+      <button class="btn-skill-add" id="btnAddSkill">+ 新Skill</button>
+    </div>
+    <div class="skills-grid" id="skillsGrid">
+      <div class="empty-state">
+        <div class="empty-icon"><img src="./icons/welcome.jpg" alt="empty"></div>
+        <p>还没有 Skill，点击右上角创建你的第一个技能吧 🌸</p>
+      </div>
+    </div>
+  </div>
+
   <!-- 浮动操作按钮 -->
   <button class="fab" id="fabAdd" title="新建任务">+</button>
 
@@ -101,6 +115,10 @@
     <button class="nav-item active" data-tab="tasks">
       <span class="nav-icon">📋</span>
       <span class="nav-text">任务</span>
+    </button>
+    <button class="nav-item" data-tab="skills">
+      <span class="nav-icon">🎯</span>
+      <span class="nav-text">技能</span>
     </button>
     <button class="nav-item" data-tab="archive">
       <span class="nav-icon">📁</span>
@@ -279,6 +297,7 @@
       <div class="archive-tabs">
         <button class="archive-tab active" data-tab="archive-tasks">📋 任务归档</button>
         <button class="archive-tab" data-tab="archive-ai">✨ AI总结归档</button>
+        <button class="archive-tab" data-tab="archive-skills">🎯 Skill结果</button>
       </div>
       <div class="archive-search">
         <input type="text" class="form-input" id="archiveSearch" placeholder="搜索归档内容...">
@@ -293,6 +312,12 @@
         <div class="empty-state">
           <div class="empty-icon"><img src="./icons/welcome.jpg" alt="empty"></div>
           <p>暂无 AI 总结归档</p>
+        </div>
+      </div>
+      <div class="archive-list hidden" id="archiveSkillList">
+        <div class="empty-state">
+          <div class="empty-icon"><img src="./icons/welcome.jpg" alt="empty"></div>
+          <p>暂无 Skill 结果归档</p>
         </div>
       </div>
     </div>
@@ -337,6 +362,64 @@
         <h3 class="settings-section-title">关于</h3>
         <p class="about-text">🌸 紫色学习工作台 v1.0<br>PurpleWorkbench — 温柔陪伴你的学习与成长</p>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Skill 创建/编辑模态框 -->
+<div class="modal-overlay hidden" id="modalSkillForm">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <button class="modal-back" id="modalSkillFormBack">← 返回</button>
+      <h2 class="modal-title" id="modalSkillFormTitle">新建 Skill</h2>
+      <button class="modal-action" id="modalSkillFormSave">保存</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Skill 名称 <span class="required">*</span></label>
+        <input type="text" class="form-input" id="skillName" placeholder="例如：Code Review、系统设计...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">图标（emoji）</label>
+        <div class="emoji-picker" id="emojiPicker">
+          <span class="emoji-option selected" data-emoji="🔍">🔍</span>
+          <span class="emoji-option" data-emoji="💻">💻</span>
+          <span class="emoji-option" data-emoji="📐">📐</span>
+          <span class="emoji-option" data-emoji="🎨">🎨</span>
+          <span class="emoji-option" data-emoji="🐛">🐛</span>
+          <span class="emoji-option" data-emoji="🚀">🚀</span>
+          <span class="emoji-option" data-emoji="📊">📊</span>
+          <span class="emoji-option" data-emoji="🔧">🔧</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">简要描述</label>
+        <input type="text" class="form-input" id="skillDesc" placeholder="这个技能是用来做什么的？">
+      </div>
+      <div class="form-group">
+        <label class="form-label">前置提示（执行时展示）</label>
+        <textarea class="form-textarea" id="skillPrompt" rows="3" placeholder="用户执行此Skill时需要填写哪些参数？例如：评审对象、重点关注方向、相关资料链接..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Skill 执行弹窗 -->
+<div class="modal-overlay hidden" id="modalSkillRun">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <button class="modal-back" id="modalSkillRunBack">← 返回</button>
+      <h2 class="modal-title" id="modalSkillRunTitle">执行 Skill</h2>
+      <span></span>
+    </div>
+    <div class="modal-body">
+      <div class="skill-run-info" id="skillRunInfo"></div>
+      <div class="form-group">
+        <label class="form-label">📋 前置资料 / 参数</label>
+        <textarea class="form-textarea" id="skillRunInput" rows="5" placeholder="填写参数、粘贴资料、补充说明..."></textarea>
+      </div>
+      <button class="btn-ai-generate" id="btnSkillExecute">⚡ 执行 Skill</button>
+      <div class="skill-run-result hidden" id="skillRunResult"></div>
     </div>
   </div>
 </div>
