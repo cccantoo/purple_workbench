@@ -2304,36 +2304,15 @@ ${input || '（用户未提供额外资料）'}
           <div class="dream-card-title">${escapeHtml(d.title || '无标题')}</div>
           <div class="dream-card-date">${formatDateFull(d.createdAt)}</div>
         </div>
-        <div class="dream-card-preview">${escapeHtml(d.content.substring(0, 200))}${d.content.length > 200 ? '...' : ''}</div>
+        <div class="dream-card-preview">${escapeHtml(d.content.substring(0, 140))}${d.content.length > 140 ? '...' : ''}</div>
         <div class="dream-card-footer">
           <span class="dream-card-badge${d.wovenVersion ? ' woven' : ''}">${d.wovenVersion ? '✨ 已织梦' : '📝 草稿'}</span>
-          <div class="dream-card-actions">
-            <button class="dream-card-btn" data-action="edit" data-id="${d.id}">✏️</button>
-            <button class="dream-card-btn" data-action="weave" data-id="${d.id}">🧵 织梦</button>
-            <button class="dream-card-btn" data-action="delete" data-id="${d.id}">🗑️</button>
-          </div>
         </div>
       </div>
     `).join('');
 
-    container.querySelectorAll('[data-action="edit"]').forEach(btn => {
-      btn.addEventListener('click', e => { e.stopPropagation(); openDreamForm(btn.dataset.id); });
-    });
-    container.querySelectorAll('[data-action="weave"]').forEach(btn => {
-      btn.addEventListener('click', e => { e.stopPropagation(); openDreamWeave(btn.dataset.id); });
-    });
-    container.querySelectorAll('[data-action="delete"]').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        showConfirm('永久删除此梦境记录？', () => {
-          dreams = dreams.filter(d => d.id !== btn.dataset.id);
-          saveDreams(); renderDreamsGrid();
-          showToast('梦境已删除');
-        });
-      });
-    });
     container.querySelectorAll('.dream-card').forEach(card => {
-      card.addEventListener('click', () => openDreamForm(card.dataset.id));
+      card.addEventListener('click', () => openDreamDetail(card.dataset.id));
     });
   }
 
@@ -2367,6 +2346,42 @@ ${input || '（用户未提供额外资料）'}
     saveDreams(); closeAllModals(); renderDreamsGrid();
     showToast(editingDreamId ? '梦境已更新' : '梦境已保存 🌙');
     editingDreamId = null;
+  }
+
+  function openDreamDetail(id) {
+    const d = dreams.find(d => d.id === id);
+    if (!d) return;
+    document.getElementById('modalDreamDetailTitle').textContent = d.title || '无标题';
+    document.getElementById('dreamDetailDate').textContent = formatDateFull(d.createdAt);
+    document.getElementById('dreamDetailContent').textContent = d.content;
+
+    // 织梦版本
+    const wovenEl = document.getElementById('dreamDetailWoven');
+    if (d.wovenVersion) {
+      wovenEl.classList.remove('hidden');
+      document.getElementById('dreamDetailWovenText').textContent = d.wovenVersion;
+    } else {
+      wovenEl.classList.add('hidden');
+    }
+
+    // 按钮绑定（每次重新绑定避免重复）
+    const editBtn = document.getElementById('dreamDetailEdit');
+    const weaveBtn = document.getElementById('dreamDetailWeave');
+    const delBtn = document.getElementById('dreamDetailDelete');
+
+    editBtn.onclick = () => { closeAllModals(); openDreamForm(id); };
+    weaveBtn.onclick = () => { closeAllModals(); openDreamWeave(id); };
+    delBtn.onclick = () => {
+      showConfirm('永久删除此梦境记录？', () => {
+        dreams = dreams.filter(d => d.id !== id);
+        saveDreams();
+        closeAllModals();
+        renderDreamsGrid();
+        showToast('梦境已删除');
+      });
+    };
+
+    openModal('modalDreamDetail');
   }
 
   function openDreamWeave(id) {
@@ -2600,6 +2615,7 @@ ${input || '（用户未提供额外资料）'}
     document.getElementById('modalDreamWeaveBack').addEventListener('click', closeAllModals);
     document.getElementById('btnDreamWeave').addEventListener('click', doDreamWeave);
     document.getElementById('btnDreamWeaveSave').addEventListener('click', saveWovenVersion);
+    document.getElementById('modalDreamDetailBack').addEventListener('click', closeAllModals);
     document.getElementById('btnUploadMd').addEventListener('click', () => {
       document.getElementById('skillMdFile').click();
     });

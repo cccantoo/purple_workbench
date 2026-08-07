@@ -980,77 +980,78 @@ body {
 .dreams-grid {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 10px 0 40px;
+  gap: 18px;
+  padding: 10px 4px 50px;
   position: relative;
 }
 
 @keyframes cloudFloat1 {
   0%,100% { transform: translateY(0) translateX(0); }
-  50% { transform: translateY(-6px) translateX(3px); }
+  50% { transform: translateY(-5px) translateX(4px); }
 }
 @keyframes cloudFloat2 {
   0%,100% { transform: translateY(0) translateX(0); }
-  50% { transform: translateY(-8px) translateX(-4px); }
+  50% { transform: translateY(-7px) translateX(-3px); }
 }
 @keyframes cloudFloat3 {
   0%,100% { transform: translateY(0) translateX(0); }
-  40% { transform: translateY(-5px) translateX(2px); }
-  80% { transform: translateY(-3px) translateX(-2px); }
+  40% { transform: translateY(-4px) translateX(2px); }
+  80% { transform: translateY(-2px) translateX(-2px); }
+}
+@keyframes cloudFloat4 {
+  0%,100% { transform: translateY(0) translateX(0); }
+  30% { transform: translateY(-6px) translateX(-1px); }
+  70% { transform: translateY(-3px) translateX(3px); }
 }
 
 .dream-card {
   position: relative;
-  background: rgba(255,255,255,0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: none;
-  border-radius: 50% 60% 55% 45% / 55% 45% 60% 50%;
-  padding: 24px 20px 20px;
-  box-shadow:
-    0 0 40px rgba(200,180,230,0.15),
-    0 8px 32px rgba(160,130,200,0.08),
-    inset 0 0 30px rgba(255,255,255,0.4);
+  padding: 22px 18px 18px;
   cursor: pointer;
-  animation: cloudFloat1 6s ease-in-out infinite;
-  overflow: visible;
+  animation: cloudFloat1 7s ease-in-out infinite;
+  box-shadow:
+    0 0 35px rgba(200,180,230,0.12),
+    0 6px 24px rgba(160,130,200,0.07),
+    inset 0 0 25px rgba(255,255,255,0.35);
 }
 
-.dream-card::before {
-  content: '';
-  position: absolute;
-  top: -18px;
-  left: 25%;
-  width: 50px;
-  height: 40px;
-  background: inherit;
-  backdrop-filter: inherit;
-  -webkit-backdrop-filter: inherit;
-  border-radius: 50%;
-  box-shadow: inherit;
-  z-index: -1;
+/* 云朵形状变体 — 大小不一 */
+.dream-card:nth-child(4n+1) {
+  border-radius: 40% 60% 35% 65% / 55% 45% 55% 45%;
+  padding: 24px 20px 20px;
+  margin-left: 6px;
+  margin-right: 10px;
+}
+.dream-card:nth-child(4n+2) {
+  border-radius: 55% 45% 60% 40% / 40% 60% 45% 55%;
+  padding: 20px 22px 18px;
+  margin-left: 12px;
+  margin-right: 4px;
+  animation-name: cloudFloat2;
+  animation-duration: 8s;
+}
+.dream-card:nth-child(4n+3) {
+  border-radius: 60% 40% 50% 50% / 50% 55% 45% 50%;
+  padding: 18px 18px 22px;
+  margin-left: 4px;
+  margin-right: 12px;
+  animation-name: cloudFloat3;
+  animation-duration: 6.5s;
+}
+.dream-card:nth-child(4n+4) {
+  border-radius: 50% 50% 58% 42% / 45% 52% 48% 55%;
+  padding: 26px 16px 16px;
+  margin-left: 14px;
+  margin-right: 2px;
+  animation-name: cloudFloat4;
+  animation-duration: 9s;
 }
 
-.dream-card::after {
-  content: '';
-  position: absolute;
-  top: -12px;
-  right: 20%;
-  width: 40px;
-  height: 32px;
-  background: inherit;
-  backdrop-filter: inherit;
-  -webkit-backdrop-filter: inherit;
-  border-radius: 50%;
-  box-shadow: inherit;
-  z-index: -1;
-}
-
-.dream-card:nth-child(2n) { animation-name: cloudFloat2; animation-duration: 7s; }
-.dream-card:nth-child(3n) { animation-name: cloudFloat3; animation-duration: 8s; }
-.dream-card:nth-child(5n) { animation-duration: 9s; }
-
-.dream-card:active { transform: scale(0.97); opacity: 0.85; }
+.dream-card:active { transform: scale(0.97); opacity: 0.8; }
 
 .dream-card-header {
   display: flex;
@@ -1098,23 +1099,72 @@ body {
   border-radius: var(--radius-full);
   background: rgba(180,140,210,0.15);
   color: var(--purple-500);
+  display: inline-block;
 }
 
 .dream-card-badge.woven { background: rgba(140,200,160,0.15); color: #6BA88A; }
 
-.dream-card-actions { display: flex; gap: 6px; }
-
-.dream-card-btn {
-  background: rgba(180,130,210,0.1);
-  border: none;
-  padding: 5px 10px;
-  border-radius: var(--radius-full);
-  font-size: 10px;
-  color: var(--purple-500);
-  cursor: pointer;
+/* 梦境详情弹窗 */
+.dream-detail-date {
+  font-size: var(--font-xs);
+  color: var(--text-light);
+  margin-bottom: 14px;
+  text-align: center;
+  opacity: 0.7;
 }
 
-.dream-card-btn:active { opacity: 0.6; }
+.dream-detail-content {
+  font-size: var(--font-sm);
+  line-height: 1.85;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  margin-bottom: 16px;
+}
+
+.dream-detail-woven {
+  background: rgba(140,200,160,0.08);
+  border: 1px solid rgba(140,200,160,0.2);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.dream-detail-woven h4 {
+  font-size: var(--font-sm);
+  color: #6BA88A;
+  margin-bottom: 8px;
+}
+
+.dream-detail-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.dream-detail-btn {
+  flex: 1;
+  padding: 10px 0;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  font-size: var(--font-xs);
+  cursor: pointer;
+  text-align: center;
+}
+
+.dream-detail-weave {
+  background: rgba(180,130,210,0.1);
+  border-color: rgba(180,130,210,0.3);
+  color: var(--purple-600);
+}
+
+.dream-detail-del {
+  color: #C56A6A;
+  border-color: rgba(197,106,106,0.2);
+}
+
+.dream-detail-btn:active { opacity: 0.6; }
 
 /* 梦境表单 */
 .dream-textarea {
