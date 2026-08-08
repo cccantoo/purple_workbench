@@ -2289,6 +2289,95 @@ ${input || '（用户未提供额外资料）'}
     document.getElementById('dreamsPage').classList.add('hidden');
   }
 
+  // 蓝紫色花藤粒子颜色池
+  const PETAL_COLORS = [
+    '#C39BD3', '#BB8FCE', '#A569BD', '#D2B4DE', '#E8DAEF',
+    '#7FB3D8', '#85C1E9', '#AED6F1', '#9B59B6', '#D7BDE2',
+    '#A78BFA', '#C4B5FD', '#818CF8', '#8B5CF6', '#7C3AED'
+  ];
+
+  const PETAL_TYPES = ['type-a', 'type-b', 'type-c', 'type-d'];
+
+  /**
+   * 梦境卡片点击花藤粒子特效
+   * @param {MouseEvent|TouchEvent} e - 点击事件
+   */
+  function createDreamParticles(e) {
+    // 获取点击坐标
+    let clientX, clientY;
+    if (e.touches) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    // 创建或获取粒子容器
+    let container = document.querySelector('.dream-particles-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'dream-particles-container';
+      document.body.appendChild(container);
+    }
+
+    const petalCount = 22 + Math.floor(Math.random() * 10); // 22~31 片花瓣
+    const sparkCount = 10 + Math.floor(Math.random() * 8);  // 10~17 个光点
+
+    // 生成花瓣粒子
+    for (let i = 0; i < petalCount; i++) {
+      const petal = document.createElement('div');
+      const type = PETAL_TYPES[i % PETAL_TYPES.length];
+      petal.className = `dream-petal ${type}`;
+
+      // 随机角度和距离
+      const angle = (Math.PI * 2 * i / petalCount) + (Math.random() - 0.5) * 0.5;
+      const distance = 45 + Math.random() * 80;
+      const sway = (Math.random() - 0.5) * 60; // 水平摆动幅度（花藤感）
+
+      petal.style.left = clientX + 'px';
+      petal.style.top = clientY + 'px';
+      petal.style.color = PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)];
+      petal.style.setProperty('--dx', Math.cos(angle) * distance + 'px');
+      petal.style.setProperty('--dy', Math.sin(angle) * distance - 25 + 'px');
+      petal.style.setProperty('--dr', (Math.random() - 0.5) * 360 + 'deg');
+      petal.style.setProperty('--sway', sway + 'px');
+      petal.style.animationDelay = Math.random() * 0.15 + 's';
+      petal.style.animationDuration = (0.9 + Math.random() * 0.6) + 's';
+
+      container.appendChild(petal);
+
+      // 动画结束后清理
+      const delay = parseFloat(petal.style.animationDelay) + parseFloat(petal.style.animationDuration);
+      setTimeout(() => {
+        if (petal.parentNode) petal.parentNode.removeChild(petal);
+      }, delay * 1000 + 100);
+    }
+
+    // 生成闪烁光点
+    for (let i = 0; i < sparkCount; i++) {
+      const spark = document.createElement('div');
+      spark.className = 'dream-spark';
+
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 30 + Math.random() * 50;
+
+      spark.style.left = (clientX + (Math.random() - 0.5) * 20) + 'px';
+      spark.style.top = (clientY + (Math.random() - 0.5) * 20) + 'px';
+      spark.style.setProperty('--sdx', Math.cos(angle) * dist + 'px');
+      spark.style.setProperty('--sdy', Math.sin(angle) * dist - 15 + 'px');
+      spark.style.animationDelay = Math.random() * 0.12 + 's';
+      spark.style.animationDuration = (0.5 + Math.random() * 0.5) + 's';
+
+      container.appendChild(spark);
+
+      const delay = parseFloat(spark.style.animationDelay) + parseFloat(spark.style.animationDuration);
+      setTimeout(() => {
+        if (spark.parentNode) spark.parentNode.removeChild(spark);
+      }, delay * 1000 + 100);
+    }
+  }
+
   function renderDreamsGrid() {
     const container = document.getElementById('dreamsGrid');
     if (dreams.length === 0) {
@@ -2310,7 +2399,11 @@ ${input || '（用户未提供额外资料）'}
     `).join('');
 
     container.querySelectorAll('.dream-card').forEach(card => {
-      card.addEventListener('click', () => openDreamDetail(card.dataset.id));
+      card.addEventListener('click', (e) => {
+        createDreamParticles(e);
+        // 延迟打开详情，让特效先播放一会儿
+        setTimeout(() => openDreamDetail(card.dataset.id), 150);
+      });
     });
   }
 

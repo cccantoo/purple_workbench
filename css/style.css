@@ -986,22 +986,31 @@ body {
 }
 
 @keyframes cloudFloat1 {
-  0%,100% { transform: translateY(0) translateX(0); }
-  50% { transform: translateY(-5px) translateX(4px); }
+  0%,100% { transform: translateY(0) translateX(0) rotate(0deg); }
+  33% { transform: translateY(-12px) translateX(8px) rotate(0.8deg); }
+  66% { transform: translateY(-6px) translateX(-4px) rotate(-0.5deg); }
 }
 @keyframes cloudFloat2 {
-  0%,100% { transform: translateY(0) translateX(0); }
-  50% { transform: translateY(-7px) translateX(-3px); }
+  0%,100% { transform: translateY(0) translateX(0) rotate(0deg); }
+  25% { transform: translateY(-14px) translateX(-6px) rotate(-1deg); }
+  50% { transform: translateY(-8px) translateX(3px) rotate(0.3deg); }
+  75% { transform: translateY(-3px) translateX(-5px) rotate(-0.6deg); }
 }
 @keyframes cloudFloat3 {
-  0%,100% { transform: translateY(0) translateX(0); }
-  40% { transform: translateY(-4px) translateX(2px); }
-  80% { transform: translateY(-2px) translateX(-2px); }
+  0%,100% { transform: translateY(0) translateX(0) rotate(0deg); }
+  40% { transform: translateY(-10px) translateX(6px) rotate(0.6deg); }
+  80% { transform: translateY(-4px) translateX(-7px) rotate(-0.4deg); }
 }
 @keyframes cloudFloat4 {
-  0%,100% { transform: translateY(0) translateX(0); }
-  30% { transform: translateY(-6px) translateX(-1px); }
-  70% { transform: translateY(-3px) translateX(3px); }
+  0%,100% { transform: translateY(0) translateX(0) rotate(0deg); }
+  30% { transform: translateY(-13px) translateX(-4px) rotate(-0.7deg); }
+  60% { transform: translateY(-5px) translateX(5px) rotate(0.4deg); }
+  85% { transform: translateY(-2px) translateX(-3px) rotate(-0.3deg); }
+}
+
+@keyframes cloudGlowPulse {
+  0%,100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 .dream-card {
@@ -1012,13 +1021,26 @@ body {
   border: none;
   padding: 16px 14px 14px;
   cursor: pointer;
-  animation: cloudFloat1 7s ease-in-out infinite;
+  animation: cloudFloat1 5.5s ease-in-out infinite;
   box-shadow:
     0 0 30px rgba(200,180,230,0.1),
     0 4px 16px rgba(160,130,200,0.05),
     inset 0 0 20px rgba(255,255,255,0.3);
   max-width: 82%;
   align-self: center;
+  overflow: visible;
+}
+.dream-card::after {
+  content: '';
+  position: absolute;
+  top: -6px; left: -6px; right: -6px; bottom: -6px;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: 0 0 24px rgba(160,120,220,0.25);
+  opacity: 0;
+  animation: cloudGlowPulse 3.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* 云朵形状变体 — 大小不一 */
@@ -1036,7 +1058,7 @@ body {
   margin-right: auto;
   max-width: 75%;
   animation-name: cloudFloat2;
-  animation-duration: 8s;
+  animation-duration: 6s;
 }
 .dream-card:nth-child(4n+3) {
   border-radius: 60% 40% 50% 50% / 50% 55% 45% 50%;
@@ -1045,7 +1067,7 @@ body {
   margin-right: 3%;
   max-width: 80%;
   animation-name: cloudFloat3;
-  animation-duration: 6.5s;
+  animation-duration: 5s;
 }
 .dream-card:nth-child(4n+4) {
   border-radius: 50% 50% 58% 42% / 45% 52% 48% 55%;
@@ -1054,7 +1076,7 @@ body {
   margin-right: auto;
   max-width: 72%;
   animation-name: cloudFloat4;
-  animation-duration: 9s;
+  animation-duration: 6.5s;
 }
 
 .dream-card:active { transform: scale(0.97); opacity: 0.8; }
@@ -2419,6 +2441,115 @@ body {
 ::selection {
   background: var(--purple-200);
   color: var(--purple-800);
+}
+
+/* ---------- 梦境卡片花藤点击特效 ---------- */
+.dream-particles-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.dream-petal {
+  position: absolute;
+  pointer-events: none;
+  animation: petalBurst 1.1s cubic-bezier(0.15, 0.65, 0.35, 1) forwards;
+}
+
+.dream-petal::before,
+.dream-petal::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+.dream-petal::before {
+  width: 100%;
+  height: 100%;
+  background: currentColor;
+  opacity: 0.9;
+}
+
+.dream-petal::after {
+  width: 70%;
+  height: 70%;
+  top: 15%;
+  left: 15%;
+  background: rgba(255,255,255,0.4);
+}
+
+/* 花瓣形状：小圆/椭圆旋转体现花瓣感 */
+.dream-petal.type-a {
+  width: 14px; height: 18px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+}
+.dream-petal.type-b {
+  width: 10px; height: 14px;
+  border-radius: 40% 60% 60% 40% / 50% 50% 50% 50%;
+}
+.dream-petal.type-c {
+  width: 16px; height: 12px;
+  border-radius: 50% 50% 50% 50% / 40% 60% 40% 60%;
+}
+.dream-petal.type-d {
+  width: 8px; height: 16px;
+  border-radius: 60% 40% 40% 60% / 50% 50% 50% 50%;
+}
+
+/* 小花心粒子 */
+.dream-spark {
+  position: absolute;
+  pointer-events: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(220,190,255,0.9);
+  box-shadow: 0 0 6px 2px rgba(180,130,230,0.6), 0 0 12px 4px rgba(150,100,210,0.3);
+  animation: sparkTwinkle 0.8s ease-out forwards;
+}
+
+@keyframes petalBurst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(0.3);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(var(--dx), var(--dy)) rotate(var(--dr)) scale(0.7);
+  }
+  40% {
+    opacity: 0.9;
+    transform: translate(
+      calc(var(--dx) * 2.2),
+      calc(var(--dy) * 2.2 + var(--dy) * 0.3)
+    ) rotate(calc(var(--dr) * 2.5)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+      calc(var(--dx) * 3.5 + var(--sway) * 1.5),
+      calc(var(--dy) * 3.5 + 20px)
+    ) rotate(calc(var(--dr) * 5)) scale(0.1);
+  }
+}
+
+@keyframes sparkTwinkle {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.5);
+  }
+  30% {
+    opacity: 0.9;
+    transform: translate(var(--sdx), var(--sdy)) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+      calc(var(--sdx) * 2.5),
+      calc(var(--sdy) * 2.5 + 10px)
+    ) scale(0);
+  }
 }
 
 /* ---------- Print (hide for app) ---------- */
